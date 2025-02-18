@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Roboto", serif;
+    font-optical-sizing: auto;
+    background: #f5f5f5;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.container {
+    margin: auto;
+}
