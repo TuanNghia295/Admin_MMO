@@ -6,6 +6,7 @@ import Users from './components/Dashboard/Users';
 import Deposit from './components/Dashboard/Deposit';
 import Withdraw from './components/Dashboard/Withdraw';
 import Config from './components/Dashboard/Config';
+import Sale from './components/Dashboard/Sale';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/" element={<LoginForm />} />
         <Route path="/dashboard" element={<HomePage />}>
           <Route path="users" element={<Users />} />
+          <Route path="sale" element={<Sale />} />
           <Route path="deposit" element={<Deposit />} />
           <Route path="withdraw" element={<Withdraw />} />
           <Route path="config" element={<Config />} />

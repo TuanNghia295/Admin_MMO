@@ -2,7 +2,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import AddCardIcon from '@mui/icons-material/AddCard';
 import WalletIcon from '@mui/icons-material/Wallet';
 import SettingsIcon from '@mui/icons-material/Settings';
-
+import BadgeIcon from '@mui/icons-material/Badge';
 export const NAVIGATION_ADMIN = [
   {
     title: 'Quản lý người dùng',
@@ -10,12 +10,17 @@ export const NAVIGATION_ADMIN = [
     icon: <ManageAccountsIcon />,
   },
   {
-    title: 'Nạp',
+    title: 'Quản lý sale',
+    href: '/dashboard/sale',
+    icon: <BadgeIcon />,
+  },
+  {
+    title: 'Quản lý nạp',
     href: '/dashboard/deposit',
     icon: <AddCardIcon />,
   },
   {
-    title: 'Rút',
+    title: 'Quản lý rút',
     href: '/dashboard/withdraw',
     icon: <WalletIcon />,
   },

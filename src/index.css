@@ -11,10 +11,11 @@
 body {
     font-family: "Roboto", serif;
     font-optical-sizing: auto;
-    background: #f5f5f5;
+    background: white;
     color: rgba(0, 0, 0, 0.7);
 }
 
 .container {
+    width: 95%;
     margin: auto;
 }

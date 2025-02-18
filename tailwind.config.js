@@ -6,6 +6,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: '#3f51b5',
         grayf5: '#f5f5f5',
         grayf8: '#f7f7f7',
       },

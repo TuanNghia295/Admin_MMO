@@ -6,7 +6,7 @@ import { Button } from '@mui/material';
 export default function Dashboard() {
   return (
     <div className="flex h-screen">
-      <ul className="w-1/5 bg-white text-black h-full flex flex-col">
+      <ul className="w-1/5 bg-primary text-white h-full flex flex-col">
         <div className="font-bold text-2xl p-4 text-center">
           <NavLink to={'/dashboard'}>
             <h1>Quản lý</h1>
@@ -21,8 +21,8 @@ export default function Dashboard() {
                 key={index}
                 className={({ isActive }) =>
                   isActive
-                    ? 'flex w-full items-center p-4  text-blue-800 cursor-pointer'
-                    : 'flex w-full items-center p-4 hover:bg-grayf5 hover:text-black cursor-pointer'
+                    ? 'flex w-full items-center p-4  text-primary bg-white cursor-pointer'
+                    : 'flex w-full items-center p-4 hover:bg-grayf5 hover:text-primary cursor-pointer'
                 }
               >
                 {icon}
@@ -35,12 +35,7 @@ export default function Dashboard() {
           <p>Chức vụ: Admin</p>
         </div>
         <div className="flex justify-center p-4">
-          <Button
-            className="w-full"
-            variant="contained"
-            color="warning"
-            href="/"
-          >
+          <Button className="w-full" variant="outlined" color="white" href="/">
             Đăng xuất
           </Button>
         </div>
