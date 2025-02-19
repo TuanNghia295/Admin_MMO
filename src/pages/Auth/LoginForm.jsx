@@ -10,19 +10,40 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../services/authService';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Xử lý logic đăng nhập
+  const { login, user, isLoadingLogin } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Email:', email);
-    console.log('Password:', password);
-    navigate('/dashboard/users');
+    if (!phone || typeof phone !== 'string' || phone.length < 1) {
+      setError('Số điện thoại không hợp lệ');
+      return;
+    }
+    setError('');
+    login(
+      { phone, password },
+      {
+        onSuccess: () => {
+          console.log('Login successfully', user);
+          navigate('/dashboard/users');
+        },
+        onError: (error) => {
+          setError(
+            error.response?.data?.message ||
+              'Số điện thoại hoặc mật khẩu không đúng'
+          );
+        },
+      }
+    );
   };
 
   const handleClickShowPassword = () => {
@@ -52,20 +73,21 @@ export default function LoginForm() {
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
+            id="phone"
+            label="Số điện thoại"
+            type="text"
+            name="phone"
+            autoComplete="phone"
             autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
           />
           <TextField
             margin="normal"
             required
             fullWidth
             name="password"
-            label="Password"
+            label="Mật khẩu"
             type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="current-password"
@@ -86,13 +108,19 @@ export default function LoginForm() {
               ),
             }}
           />
+          {error && (
+            <Typography color="error" variant="body2">
+              {error}
+            </Typography>
+          )}
           <Button
             type="submit"
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
+            disabled={isLoadingLogin}
           >
-            Sign in
+            {isLoadingLogin ? 'Đang xử lý...' : 'Đăng nhập'}
           </Button>
         </Box>
       </Box>

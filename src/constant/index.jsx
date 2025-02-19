@@ -3,6 +3,7 @@ import AddCardIcon from '@mui/icons-material/AddCard';
 import WalletIcon from '@mui/icons-material/Wallet';
 import SettingsIcon from '@mui/icons-material/Settings';
 import BadgeIcon from '@mui/icons-material/Badge';
+
 export const NAVIGATION_ADMIN = [
   {
     title: 'Quản lý người dùng',
@@ -48,3 +49,8 @@ export const NAVIGATION_SALE = [
     icon: <WalletIcon />,
   },
 ];
+
+export const ROLE = {
+  ADMIN: 'MANAGER',
+  SALE: 'SALE',
+};
