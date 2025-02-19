@@ -57,7 +57,7 @@ export default function Deposit() {
             <th className="border border-gray-300 p-2">Người dùng</th>
             <th className="border border-gray-300 p-2">Số điểm</th>
             <th className="border border-gray-300 p-2">Trạng thái</th>
-            <th className="border border-gray-300 p-2">Hành động</th>
+            <th className="border border-gray-300 p-2"></th>
           </tr>
         </thead>
         <tbody>
@@ -89,7 +89,7 @@ export default function Deposit() {
       {selectedDeposit && (
         <Dialog open={isDialogOpen} onClose={handleCloseDetails}>
           <DialogTitle>Chi tiết nạp điểm</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={{ minWidth: '400px' }}>
             <p>Người dùng: {selectedDeposit.user}</p>
             <p>Số điểm: {selectedDeposit.amount}</p>
             <p>Trạng thái: {selectedDeposit.status}</p>

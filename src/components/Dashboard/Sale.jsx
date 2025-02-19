@@ -100,7 +100,7 @@ export default function Sale() {
             <th className="border border-gray-300 p-2">Tên</th>
             <th className="border border-gray-300 p-2">Điểm</th>
             <th className="border border-gray-300 p-2">Số điện thoại</th>
-            <th className="border border-gray-300 p-2">Hành động</th>
+            <th className="border border-gray-300 p-2"></th>
           </tr>
         </thead>
         <tbody>

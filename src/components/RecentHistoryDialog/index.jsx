@@ -1,15 +1,27 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
-  Button,
+  TextField,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi'; // Import Vietnamese locale
 
 export default function RecentHistoryDialog({ open, onClose, history }) {
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+
+  useEffect(() => {
+    // Filter history based on the selected date
+    // This is just a placeholder, you should implement the actual filtering logic
+    console.log('Selected date:', selectedDate.format('YYYY-MM-DD'));
+  }, [selectedDate]);
+
   return (
     <Dialog open={open} onClose={onClose} fullScreen>
       <DialogTitle>
@@ -28,6 +40,16 @@ export default function RecentHistoryDialog({ open, onClose, history }) {
         </IconButton>
       </DialogTitle>
       <DialogContent>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="vi">
+          <DatePicker
+            label=""
+            value={selectedDate}
+            onChange={(newValue) => setSelectedDate(newValue)}
+            renderInput={(params) => (
+              <TextField {...params} fullWidth sx={{ mb: 4 }} />
+            )}
+          />
+        </LocalizationProvider>
         <table className="w-full border-collapse border border-gray-300 mt-4">
           <thead>
             <tr>

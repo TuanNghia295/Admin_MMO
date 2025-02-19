@@ -22,7 +22,7 @@ export default function LoginForm() {
     // Handle login logic here
     console.log('Email:', email);
     console.log('Password:', password);
-    navigate('/dashboard');
+    navigate('/dashboard/users');
   };
 
   const handleClickShowPassword = () => {

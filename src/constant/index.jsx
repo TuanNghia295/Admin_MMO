@@ -31,7 +31,7 @@ export const NAVIGATION_ADMIN = [
   },
 ];
 
-export const NAVIGATION_USER = [
+export const NAVIGATION_SALE = [
   {
     title: 'Quản lý người dùng',
     href: '/dashboard/users',

@@ -60,7 +60,7 @@ export default function Withdraw() {
             <th className="border border-gray-300 p-2">Người dùng</th>
             <th className="border border-gray-300 p-2">Số điểm</th>
             <th className="border border-gray-300 p-2">Trạng thái</th>
-            <th className="border border-gray-300 p-2">Hành động</th>
+            <th className="border border-gray-300 p-2"></th>
           </tr>
         </thead>
         <tbody>

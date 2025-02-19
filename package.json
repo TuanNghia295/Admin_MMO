@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -13,10 +13,13 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.4",
+    "@mui/lab": "^6.0.0-beta.28",
     "@mui/material": "^6.4.4",
     "@mui/styled-engine-sc": "^6.4.3",
+    "@mui/x-date-pickers": "^7.27.0",
     "@toolpad/core": "^0.12.0",
     "autoprefixer": "^10.4.20",
+    "dayjs": "^1.11.13",
     "postcss": "^8.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

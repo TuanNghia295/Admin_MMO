@@ -77,6 +77,9 @@ export default function Users() {
   const [history, setHistory] = useState([]);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] =
+    useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -142,7 +145,13 @@ export default function Users() {
   };
 
   const handleChangePassword = () => {
+    setIsChangePasswordDialogOpen(true);
+  };
+
+  const handleSaveNewPassword = () => {
     // Implement change password logic here
+    console.log('New password:', newPassword);
+    setIsChangePasswordDialogOpen(false);
   };
 
   const handleViewHistory = (history) => {
@@ -175,7 +184,7 @@ export default function Users() {
             <th className="border border-gray-300 p-2">Tên</th>
             <th className="border border-gray-300 p-2">Điểm</th>
             <th className="border border-gray-300 p-2">Số điện thoại</th>
-            <th className="border border-gray-300 p-2">Hành động</th>
+            <th className="border border-gray-300 p-2"></th>
           </tr>
         </thead>
         <tbody>
@@ -316,6 +325,35 @@ export default function Users() {
           </Button>
           <Button onClick={handleDeleteUser} color="error">
             Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isChangePasswordDialogOpen}
+        onClose={() => setIsChangePasswordDialogOpen(false)}
+      >
+        <DialogTitle>Nhập mật khẩu mới</DialogTitle>
+        <DialogContent sx={{ minWidth: '400px' }}>
+          <TextField
+            label="Mật khẩu mới"
+            variant="outlined"
+            fullWidth
+            type="text"
+            margin="normal"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setIsChangePasswordDialogOpen(false)}
+            color="primary"
+          >
+            Hủy
+          </Button>
+          <Button onClick={handleSaveNewPassword} color="primary">
+            Lưu
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { NAVIGATION_ADMIN } from '../../constant';
 import { NavLink, Outlet } from 'react-router';
 import { Button } from '@mui/material';
@@ -8,7 +7,7 @@ export default function Dashboard() {
     <div className="flex h-screen">
       <ul className="w-1/5 bg-primary text-white h-full flex flex-col">
         <div className="font-bold text-2xl p-4 text-center">
-          <NavLink to={'/dashboard'}>
+          <NavLink to={'/dashboard/users'}>
             <h1>Quản lý</h1>
           </NavLink>
         </div>
