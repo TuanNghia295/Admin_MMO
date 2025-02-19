@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '../apis/AxiosClient';
 
-// Lấy danh sách user
+// Lấy danh sách user với thông tin phân trang
 const fetchListUser = async ({ queryKey }) => {
   const [_key, { limit, page, q, order }] = queryKey;
 
   // Tạo query params linh hoạt
   const params = new URLSearchParams({
     limit,
+    page,
     order,
   });
 
@@ -15,7 +16,7 @@ const fetchListUser = async ({ queryKey }) => {
 
   const response = await axiosClient.get(`/users?${params.toString()}`);
   console.log(response.data);
-  return response.data;
+  return response; // Dữ liệu trả về có cấu trúc: { data: [...], pagination: { ... } }
 };
 
 // Tạo user mới
@@ -30,9 +31,7 @@ const createUser = async ({ phone, password, code }) => {
 
 // Xóa user
 const deleteUser = async (id) => {
-  console.log('Delete user:', id);
   const response = await axiosClient.delete(`/users?userId=${id}`);
-  console.log('Delete user response:', response);
   return response.data;
 };
 
@@ -54,8 +53,14 @@ export const useUser = ({ limit, page, q, order }) => {
     enabled: !!localStorage.getItem('role'),
   });
 
-  const listUser = data || [];
-  const totalUsers = data?.length || 0;
+  // Nếu API trả về dạng: { data: [...], pagination: {...} }
+  const listUser = data?.data || [];
+  const pagination = data?.pagination || {};
+  const totalPage = pagination.totalPages || 0;
+
+  console.log('List user:', listUser);
+  console.log('Pagination:', pagination);
+  console.log('Total users:', totalPage);
 
   const { mutate: createUserMutation, isLoading: isLoadingCreateUser } =
     useMutation({
@@ -110,7 +115,8 @@ export const useUser = ({ limit, page, q, order }) => {
 
   return {
     listUser,
-    totalUsers,
+    pagination,
+    totalPage,
     isLoadingListUser,
     createUserMutation,
     isLoadingCreateUser,

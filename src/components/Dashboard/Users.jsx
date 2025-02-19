@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Button,
   TextField,
@@ -13,19 +13,22 @@ import RecentHistoryDialog from '../RecentHistoryDialog';
 import { useUser } from '../../services/userService';
 import LoadingPage from '../../pages/LoadingPage';
 import { ErrorCode } from '../../constant';
+import InOutHistory from '../InOutHistory';
 
 export default function Users() {
   const [page, setPage] = useState(1);
+  const [desiredPage, setDesiredPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const {
     listUser,
+    totalPage,
     isLoadingListUser,
     createUserMutation,
     deleteUserMutation,
     changePasswordMutation,
   } = useUser({
     limit: 8,
-    page,
+    page: desiredPage,
     q: searchTerm,
     order: 'DESC',
   });
@@ -50,6 +53,7 @@ export default function Users() {
   });
   const [passwordError, setPasswordError] = useState('');
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+  const [isHistoryInOutOpen, setIsHistoryInOutOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -61,21 +65,15 @@ export default function Users() {
 
   useEffect(() => {
     if (listUser) {
-      console.log('listUser', listUser);
       setUsers(listUser);
+      setPage(desiredPage);
     }
-  }, [listUser]);
+  }, [listUser, desiredPage]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setPage(1); // Reset to first page when searching
+    // setDesiredPage(1); // Reset to first page when searching
   };
-
-  useEffect(() => {
-    if (searchTerm && listUser.length === 0) {
-      setUsers([]);
-    }
-  }, [searchTerm, listUser]);
 
   const handleAddUser = () => {
     setIsEditMode(false);
@@ -122,6 +120,23 @@ export default function Users() {
   };
 
   const handleSaveUser = () => {
+    const phoneRegex = /^0\d{9,10}$/;
+    if (!phoneRegex.test(newUser.phone)) {
+      setError(
+        'Số điện thoại phải bắt đầu bằng số 0 và có độ dài từ 10 đến 11 số'
+      );
+      return;
+    }
+    if (
+      /\s/.test(newUser.phone) ||
+      /\s/.test(newUser.password) ||
+      /\s/.test(newUser.code)
+    ) {
+      setError(
+        'Số điện thoại, mật khẩu và mã giới thiệu không được có khoảng trắng'
+      );
+      return;
+    }
     if (newUser.password.length < 6) {
       setPasswordError('Mật khẩu phải lớn hơn hoặc bằng 6 ký tự');
       return;
@@ -134,13 +149,20 @@ export default function Users() {
     setIsDialogOpen(false);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewUser((prevUser) => ({ ...prevUser, [name]: value.trim() }));
+  };
+
   const getErrorMessage = (errorCode) => {
     console.log('errorCode', errorCode);
     switch (errorCode) {
       case ErrorCode.U002:
         return 'Người dùng đã tồn tại';
+      case ErrorCode.S001:
+        return 'Mã giới thiệu không tồn tại';
       case ErrorCode.S002:
-        return 'Mã sale đã tồn tại';
+        return 'Mã giới thiệu đã tồn tại';
       case ErrorCode.S003:
         return 'Số điện thoại đã tồn tại';
       default:
@@ -152,6 +174,7 @@ export default function Users() {
     createUserMutation(user, {
       onSuccess: (data) => {
         setUsers([...users, data]);
+        setSuccessMessage('Thêm người dùng thành công');
       },
       onError: (error) => {
         const errorMessage = getErrorMessage(error?.data?.errorCode);
@@ -202,22 +225,25 @@ export default function Users() {
     setIsHistoryDialogOpen(true);
   };
 
+  const handleViewInOutHistory = (history) => {
+    setHistory(history);
+    setIsHistoryInOutOpen(true);
+  };
+
   const handleCloseHistoryDialog = () => {
     setIsHistoryDialogOpen(false);
   };
 
-  const handleNextPage = () => {
-    setPage((prevPage) => prevPage + 1);
+  const handleCloseInOutHistory = () => {
+    setIsHistoryInOutOpen(false);
   };
 
-  useEffect(() => {
-    if (listUser.length === 0 && page > 1) {
-      setPage((prevPage) => prevPage - 1);
-    }
-  }, [listUser, page]);
+  const handleNextPage = () => {
+    setDesiredPage((prevPage) => prevPage + 1);
+  };
 
   const handlePreviousPage = () => {
-    setPage((prevPage) => Math.max(prevPage - 1, 1));
+    setDesiredPage((prevPage) => Math.max(prevPage - 1, 1));
   };
 
   return (
@@ -241,7 +267,7 @@ export default function Users() {
         <LoadingPage />
       ) : (
         <>
-          {users.length === 0 && searchTerm ? (
+          {filteredUsers.length === 0 && searchTerm ? (
             <p>Người dùng không tồn tại</p>
           ) : (
             <>
@@ -276,13 +302,6 @@ export default function Users() {
                         >
                           Chi tiết
                         </Button>
-                        {/* <Button
-                          variant="text"
-                          color="secondary"
-                          onClick={() => handleEditUser(user)}
-                        >
-                          Sửa
-                        </Button> */}
                         <Button
                           variant="text"
                           color="error"
@@ -308,6 +327,7 @@ export default function Users() {
                   variant="contained"
                   color="primary"
                   onClick={handleNextPage}
+                  disabled={page === totalPage}
                 >
                   Trang sau
                 </Button>
@@ -327,21 +347,18 @@ export default function Users() {
             variant="outlined"
             fullWidth
             margin="normal"
+            name="phone"
             value={newUser.phone}
-            onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+            onChange={handleInputChange}
           />
           <TextField
             label="Mật khẩu"
             variant="outlined"
             fullWidth
             margin="normal"
+            name="password"
             value={newUser.password}
-            onChange={(e) =>
-              setNewUser({
-                ...newUser,
-                password: e.target.value,
-              })
-            }
+            onChange={handleInputChange}
             error={!!passwordError}
             helperText={passwordError}
           />
@@ -350,8 +367,9 @@ export default function Users() {
             variant="outlined"
             fullWidth
             margin="normal"
+            name="code"
             value={newUser.code}
-            onChange={(e) => setNewUser({ ...newUser, code: e.target.value })}
+            onChange={handleInputChange}
           />
         </DialogContent>
         <DialogActions>
@@ -379,13 +397,25 @@ export default function Users() {
             <p>Điểm: {selectedUser.wallet.money}</p>
             <p>Số điện thoại: {selectedUser.phone}</p>
             <p>Lịch sử chơi gần đây:</p>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleViewHistory(selectedUser.recentHistory)}
-            >
-              Xem lịch sử
-            </Button>
+            <div className="flex justify-around">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleViewHistory(selectedUser.recentHistory)}
+              >
+                Lịch sử game
+              </Button>
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() =>
+                  handleViewInOutHistory(selectedUser.recentHistory)
+                }
+              >
+                Lịch sử nạp / rút
+              </Button>
+            </div>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDeposit} color="primary">
@@ -407,6 +437,12 @@ export default function Users() {
       <RecentHistoryDialog
         open={isHistoryDialogOpen}
         onClose={handleCloseHistoryDialog}
+        history={history}
+      />
+
+      <InOutHistory
+        open={isHistoryInOutOpen}
+        onClose={handleCloseInOutHistory}
         history={history}
       />
 
