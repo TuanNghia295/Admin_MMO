@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   TextField,
@@ -6,77 +6,119 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from '@mui/material';
-
-const initialSales = [
-  { id: 1, name: 'John Doe', points: 100, phone: '123-456-7890' },
-  { id: 2, name: 'Jane Smith', points: 200, phone: '987-654-3210' },
-  { id: 3, name: 'Alice Johnson', points: 150, phone: '555-555-5555' },
-  // Add more sales as needed
-];
+import { useSale } from '../../services/saleService';
+import { ErrorCode } from '../../constant';
 
 export default function Sale() {
-  const [sales, setSales] = useState(initialSales);
+  const [page, setPage] = useState(1);
+  const [desiredPage, setDesiredPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSale, setSelectedSale] = useState(null);
+  const [sales, setSales] = useState([]);
+  const { listSales, totalPage, isLoadingListSales, createSaleMutation } =
+    useSale({
+      limit: 8,
+      page: desiredPage,
+      q: searchTerm,
+      order: 'DESC',
+    });
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [newSale, setNewSale] = useState({ name: '', points: '', phone: '' });
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [saleToDelete, setSaleToDelete] = useState(null);
+  const [newSale, setNewSale] = useState({
+    fullName: '',
+    phone: '',
+    password: '',
+  });
+  const [phoneError, setPhoneError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setDesiredPage(1); // Reset to first page when searching
   };
 
   const filteredSales = sales.filter(
     (sale) =>
-      sale.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.phone.includes(searchTerm)
+      sale?.fullName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      sale?.phone?.includes(searchTerm)
   );
 
   const handleAddSale = () => {
     setIsEditMode(false);
-    setNewSale({ name: '', points: '', phone: '' });
+    setNewSale({ fullName: '', phone: '', password: '' });
+    setPhoneError('');
+    setPasswordError('');
     setIsDialogOpen(true);
   };
 
-  const handleEditSale = (sale) => {
-    setIsEditMode(true);
-    setNewSale(sale);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteSale = (saleId) => {
-    setSales(sales.filter((sale) => sale.id !== saleId));
-    setIsDeleteConfirmOpen(false);
+  const getErrorMessage = (errorCode) => {
+    console.log('Error code:', errorCode);
+    switch (errorCode) {
+      case ErrorCode.U002:
+        return 'Người dùng đã tồn tại';
+      case ErrorCode.S001:
+        return 'Mã giới thiệu không tồn tại';
+      case ErrorCode.S002:
+        return 'Mã giới thiệu đã tồn tại';
+      case ErrorCode.S003:
+        return 'Số điện thoại đã tồn tại';
+      default:
+        return 'Đã xảy ra lỗi';
+    }
   };
 
   const handleSaveSale = () => {
+    const phoneRegex = /^0\d{9,10}$/;
+    if (!phoneRegex.test(newSale.phone)) {
+      setPhoneError(
+        'Số điện thoại phải bắt đầu bằng số 0 và có độ dài từ 10 đến 11 số'
+      );
+      return;
+    }
+    if (/\s/.test(newSale.phone) || /\s/.test(newSale.password)) {
+      setPasswordError('Số điện thoại và mật khẩu không được có khoảng trắng');
+      return;
+    }
+    if (newSale.password.length < 6) {
+      setPasswordError('Mật khẩu phải lớn hơn hoặc bằng 6 ký tự');
+      return;
+    }
     if (isEditMode) {
       setSales(sales.map((sale) => (sale.id === newSale.id ? newSale : sale)));
     } else {
-      setSales([...sales, { ...newSale, id: sales.length + 1 }]);
+      createSaleMutation(newSale, {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setSuccessMessage('Thêm sale thành công');
+        },
+        onError: (error) => {
+          const errorMessage = getErrorMessage(error?.data?.errorCode);
+          setError(errorMessage || 'Error creating sale');
+          console.error('Error creating sale:', error);
+        },
+      });
     }
-    setIsDialogOpen(false);
   };
 
-  const handleViewDetails = (sale) => {
-    setSelectedSale(sale);
+  // Danh sách sale được cập nhật khi có dữ liệu mới từ API
+  useEffect(() => {
+    if (listSales) {
+      setSales(listSales);
+      setPage(desiredPage);
+    }
+  }, [listSales, desiredPage]);
+
+  const handleNextPage = () => {
+    setDesiredPage((prevPage) => prevPage + 1);
   };
 
-  const handleCloseDetails = () => {
-    setSelectedSale(null);
-  };
-
-  const handleOpenDeleteConfirm = (sale) => {
-    setSaleToDelete(sale);
-    setIsDeleteConfirmOpen(true);
-  };
-
-  const handleCloseDeleteConfirm = () => {
-    setIsDeleteConfirmOpen(false);
-    setSaleToDelete(null);
+  const handlePreviousPage = () => {
+    setDesiredPage((prevPage) => Math.max(prevPage - 1, 1));
   };
 
   return (
@@ -94,54 +136,78 @@ export default function Sale() {
       <Button variant="contained" color="primary" onClick={handleAddSale}>
         Thêm sale
       </Button>
-      <table className="w-full border-collapse border border-gray-300 mt-4">
-        <thead>
-          <tr>
-            <th className="border border-gray-300 p-2">Tên</th>
-            <th className="border border-gray-300 p-2">Điểm</th>
-            <th className="border border-gray-300 p-2">Số điện thoại</th>
-            <th className="border border-gray-300 p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredSales.map((sale) => (
-            <tr key={sale.id}>
-              <td className="border border-gray-300 p-2 text-center">
-                {sale.name}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {sale.points}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {sale.phone}
-              </td>
-              <td className="border border-gray-300 p-2 flex justify-around">
-                <Button
-                  variant="text"
-                  color="primary"
-                  onClick={() => handleViewDetails(sale)}
-                >
-                  Chi tiết
-                </Button>
-                <Button
-                  variant="text"
-                  color="secondary"
-                  onClick={() => handleEditSale(sale)}
-                >
-                  Sửa
-                </Button>
-                <Button
-                  variant="text"
-                  color="error"
-                  onClick={() => handleOpenDeleteConfirm(sale)}
-                >
-                  Xóa
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {isLoadingListSales ? (
+        <p>Đang tải...</p>
+      ) : (
+        <>
+          <table className="w-full border-collapse border border-gray-300 mt-4">
+            <thead>
+              <tr>
+                <th className="border border-gray-300 p-2">Tên</th>
+                <th className="border border-gray-300 p-2">Mã giới thiệu</th>
+                <th className="border border-gray-300 p-2">Số điện thoại</th>
+                {/* <th className="border border-gray-300 p-2"></th> */}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSales.map((sale) => (
+                <tr key={sale.id}>
+                  <td className="border border-gray-300 p-2 text-center">
+                    {sale.fullName}
+                  </td>
+                  <td className="border border-gray-300 p-2 text-center">
+                    {sale.code}
+                  </td>
+                  <td className="border border-gray-300 p-2 text-center">
+                    {sale.phone}
+                  </td>
+                  {/* <td className="border border-gray-300 p-2 flex justify-around">
+                    <Button
+                      variant="text"
+                      color="primary"
+                      onClick={() => handleViewDetails(sale)}
+                    >
+                      Chi tiết
+                    </Button>
+                    <Button
+                      variant="text"
+                      color="secondary"
+                      onClick={() => handleEditSale(sale)}
+                    >
+                      Sửa
+                    </Button>
+                    <Button
+                      variant="text"
+                      color="error"
+                      onClick={() => handleOpenDeleteConfirm(sale)}
+                    >
+                      Xóa
+                    </Button>
+                  </td> */}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex justify-between mt-4">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handlePreviousPage}
+              disabled={page === 1}
+            >
+              Trang trước
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleNextPage}
+              disabled={page === totalPage}
+            >
+              Trang sau
+            </Button>
+          </div>
+        </>
+      )}
 
       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
         <DialogTitle>
@@ -154,15 +220,9 @@ export default function Sale() {
             fullWidth
             margin="normal"
             value={newSale.name}
-            onChange={(e) => setNewSale({ ...newSale, name: e.target.value })}
-          />
-          <TextField
-            label="Điểm"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={newSale.points}
-            onChange={(e) => setNewSale({ ...newSale, points: e.target.value })}
+            onChange={(e) =>
+              setNewSale({ ...newSale, fullName: e.target.value })
+            }
           />
           <TextField
             label="Số điện thoại"
@@ -171,6 +231,20 @@ export default function Sale() {
             margin="normal"
             value={newSale.phone}
             onChange={(e) => setNewSale({ ...newSale, phone: e.target.value })}
+            error={!!phoneError}
+            helperText={phoneError}
+          />
+          <TextField
+            label="Mật khẩu"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={newSale.password}
+            onChange={(e) =>
+              setNewSale({ ...newSale, password: e.target.value })
+            }
+            error={!!passwordError}
+            helperText={passwordError}
           />
         </DialogContent>
         <DialogActions>
@@ -183,46 +257,33 @@ export default function Sale() {
         </DialogActions>
       </Dialog>
 
-      {selectedSale && (
-        <Dialog open={Boolean(selectedSale)} onClose={handleCloseDetails}>
-          <DialogTitle>Chi tiết sale</DialogTitle>
-          <DialogContent
-            style={{
-              minWidth: '500px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            <p>Tên: {selectedSale.name}</p>
-            <p>Điểm: {selectedSale.points}</p>
-            <p>Số điện thoại: {selectedSale.phone}</p>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDetails} color="primary">
-              Đóng
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert
+          onClose={() => setError(null)}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
 
-      <Dialog open={isDeleteConfirmOpen} onClose={handleCloseDeleteConfirm}>
-        <DialogTitle>Xác nhận xóa</DialogTitle>
-        <DialogContent>
-          <p>Bạn có chắc chắn muốn xóa sale này không?</p>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteConfirm} color="primary">
-            Hủy
-          </Button>
-          <Button
-            onClick={() => handleDeleteSale(saleToDelete.id)}
-            color="error"
-          >
-            Xóa
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+      >
+        <Alert
+          onClose={() => setSuccessMessage(null)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
