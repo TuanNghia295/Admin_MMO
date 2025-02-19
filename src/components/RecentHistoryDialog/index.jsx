@@ -15,13 +15,6 @@ import 'dayjs/locale/vi'; // Import Vietnamese locale
 
 export default function RecentHistoryDialog({ open, onClose, history }) {
   const [selectedDate, setSelectedDate] = useState(dayjs());
-
-  useEffect(() => {
-    // Filter history based on the selected date
-    // This is just a placeholder, you should implement the actual filtering logic
-    console.log('Selected date:', selectedDate.format('YYYY-MM-DD'));
-  }, [selectedDate]);
-
   return (
     <Dialog open={open} onClose={onClose} fullScreen>
       <DialogTitle>
@@ -60,22 +53,22 @@ export default function RecentHistoryDialog({ open, onClose, history }) {
             </tr>
           </thead>
           <tbody>
-            {history.map((item, index) => (
+            {history?.map((item, index) => (
               <tr key={index}>
                 <td className="border border-gray-300 p-2 text-center">
-                  {item.time}
+                  {item?.time}
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {item.game}
+                  {item?.game}
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {item.result}
+                  {item?.result}
                 </td>
                 <td
                   className="border border-gray-300 p-2 text-center"
                   style={{ color: item.amount > 0 ? 'green' : 'red' }}
                 >
-                  {item.amount}
+                  {item?.amount}
                 </td>
               </tr>
             ))}

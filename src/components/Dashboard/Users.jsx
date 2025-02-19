@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   TextField,
@@ -6,73 +6,49 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import RecentHistoryDialog from '../RecentHistoryDialog';
-
-const initialUsers = [
-  {
-    id: 1,
-    name: 'John Doe',
-    points: 100,
-    phone: '123-456-7890',
-    balance: 500,
-    recentHistory: [
-      {
-        time: '2025-02-18 10:00',
-        game: 'Game 1',
-        result: 'Thắng',
-        amount: 100,
-      },
-      { time: '2025-02-18 11:00', game: 'Game 2', result: 'Thua', amount: -50 },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    points: 200,
-    phone: '987-654-3210',
-    balance: 300,
-    recentHistory: [
-      {
-        time: '2025-02-18 12:00',
-        game: 'Game 3',
-        result: 'Thắng',
-        amount: 200,
-      },
-      {
-        time: '2025-02-18 13:00',
-        game: 'Game 4',
-        result: 'Thua',
-        amount: -100,
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Alice Johnson',
-    points: 150,
-    phone: '555-555-5555',
-    balance: 400,
-    recentHistory: [
-      {
-        time: '2025-02-18 14:00',
-        game: 'Game 5',
-        result: 'Thắng',
-        amount: 150,
-      },
-      { time: '2025-02-18 15:00', game: 'Game 6', result: 'Thua', amount: -75 },
-    ],
-  },
-  // Add more users as needed
-];
+import { useUser } from '../../services/userService';
+import LoadingPage from '../../pages/LoadingPage';
+import { ErrorCode } from '../../constant';
 
 export default function Users() {
-  const [users, setUsers] = useState(initialUsers);
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const {
+    listUser,
+    isLoadingListUser,
+    createUserMutation,
+    deleteUserMutation,
+    changePasswordMutation,
+  } = useUser({
+    limit: 8,
+    page,
+    q: searchTerm,
+    order: 'DESC',
+  });
+
+  const filteredUsers = listUser.filter((user) =>
+    searchTerm
+      ? user?.fullName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+        user?.phone?.includes(searchTerm)
+      : true
+  );
+
+  const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', points: '', phone: '' });
+  const [newUser, setNewUser] = useState({
+    fullName: '',
+    wallet: { money: '' },
+    phone: '',
+    password: '',
+    code: '',
+  });
+  const [passwordError, setPasswordError] = useState('');
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -80,26 +56,44 @@ export default function Users() {
   const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] =
     useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  useEffect(() => {
+    if (listUser) {
+      console.log('listUser', listUser);
+      setUsers(listUser);
+    }
+  }, [listUser]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setPage(1); // Reset to first page when searching
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.phone.includes(searchTerm)
-  );
+  useEffect(() => {
+    if (searchTerm && listUser.length === 0) {
+      setUsers([]);
+    }
+  }, [searchTerm, listUser]);
 
   const handleAddUser = () => {
     setIsEditMode(false);
-    setNewUser({ name: '', points: '', phone: '' });
+    setNewUser({
+      fullName: '',
+      wallet: { money: '' },
+      phone: '',
+      password: '',
+      code: '',
+    });
+    setPasswordError('');
     setIsDialogOpen(true);
   };
 
   const handleEditUser = (user) => {
     setIsEditMode(true);
     setNewUser(user);
+    setPasswordError('');
     setIsDialogOpen(true);
   };
 
@@ -114,18 +108,57 @@ export default function Users() {
   };
 
   const handleDeleteUser = () => {
-    setUsers(users.filter((user) => user.id !== userToDelete.id));
-    setIsDeleteConfirmOpen(false);
-    setUserToDelete(null);
+    deleteUserMutation(userToDelete.id, {
+      onSuccess: () => {
+        setUsers(users.filter((user) => user.id !== userToDelete.id));
+        setIsDeleteConfirmOpen(false);
+        setUserToDelete(null);
+      },
+      onError: (error) => {
+        setError('Xóa người dùng thất bại');
+        console.error('Delete user failed:', error);
+      },
+    });
   };
 
   const handleSaveUser = () => {
+    if (newUser.password.length < 6) {
+      setPasswordError('Mật khẩu phải lớn hơn hoặc bằng 6 ký tự');
+      return;
+    }
     if (isEditMode) {
       setUsers(users.map((user) => (user.id === newUser.id ? newUser : user)));
     } else {
-      setUsers([...users, { ...newUser, id: users.length + 1 }]);
+      handleCreateUser(newUser);
     }
     setIsDialogOpen(false);
+  };
+
+  const getErrorMessage = (errorCode) => {
+    console.log('errorCode', errorCode);
+    switch (errorCode) {
+      case ErrorCode.U002:
+        return 'Người dùng đã tồn tại';
+      case ErrorCode.S002:
+        return 'Mã sale đã tồn tại';
+      case ErrorCode.S003:
+        return 'Số điện thoại đã tồn tại';
+      default:
+        return 'Đã xảy ra lỗi';
+    }
+  };
+
+  const handleCreateUser = (user) => {
+    createUserMutation(user, {
+      onSuccess: (data) => {
+        setUsers([...users, data]);
+      },
+      onError: (error) => {
+        const errorMessage = getErrorMessage(error?.data?.errorCode);
+        setError(errorMessage);
+        // console.error('Create user failed:', error);
+      },
+    });
   };
 
   const handleViewDetails = (user) => {
@@ -149,9 +182,19 @@ export default function Users() {
   };
 
   const handleSaveNewPassword = () => {
-    // Implement change password logic here
-    console.log('New password:', newPassword);
-    setIsChangePasswordDialogOpen(false);
+    changePasswordMutation(
+      { userId: selectedUser.id, password: newPassword },
+      {
+        onSuccess: () => {
+          setSuccessMessage('Thay đổi mật khẩu thành công');
+          setIsChangePasswordDialogOpen(false);
+        },
+        onError: (error) => {
+          setError('Thay đổi mật khẩu thất bại');
+          console.error('Change password failed:', error);
+        },
+      }
+    );
   };
 
   const handleViewHistory = (history) => {
@@ -163,69 +206,116 @@ export default function Users() {
     setIsHistoryDialogOpen(false);
   };
 
+  const handleNextPage = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  useEffect(() => {
+    if (listUser.length === 0 && page > 1) {
+      setPage((prevPage) => prevPage - 1);
+    }
+  }, [listUser, page]);
+
+  const handlePreviousPage = () => {
+    setPage((prevPage) => Math.max(prevPage - 1, 1));
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Quản lý người dùng</h1>
-      <div className="mb-4">
-        <TextField
-          label="Tìm kiếm theo tên hoặc số điện thoại"
-          variant="outlined"
-          fullWidth
-          value={searchTerm}
-          onChange={handleSearch}
-        />
+      <div className="mb-4 flex">
+        <div className="flex-1 mr-5">
+          <TextField
+            label="Tìm kiếm theo tên hoặc số điện thoại"
+            variant="outlined"
+            fullWidth
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+        </div>
+        <Button variant="contained" color="primary" onClick={handleAddUser}>
+          Thêm người dùng
+        </Button>
       </div>
-      <Button variant="contained" color="primary" onClick={handleAddUser}>
-        Thêm người dùng
-      </Button>
-      <table className="w-full border-collapse border border-gray-300 mt-4">
-        <thead>
-          <tr>
-            <th className="border border-gray-300 p-2">Tên</th>
-            <th className="border border-gray-300 p-2">Điểm</th>
-            <th className="border border-gray-300 p-2">Số điện thoại</th>
-            <th className="border border-gray-300 p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map((user) => (
-            <tr key={user.id}>
-              <td className="border border-gray-300 p-2 text-center">
-                {user.name}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {user.points}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {user.phone}
-              </td>
-              <td className="border border-gray-300 p-2 text-center flex justify-around">
+      {isLoadingListUser ? (
+        <LoadingPage />
+      ) : (
+        <>
+          {users.length === 0 && searchTerm ? (
+            <p>Người dùng không tồn tại</p>
+          ) : (
+            <>
+              <table className="w-full border-collapse border border-gray-300 mt-4">
+                <thead>
+                  <tr>
+                    <th className="border border-gray-300 p-2">Tên</th>
+                    <th className="border border-gray-300 p-2">Điểm</th>
+                    <th className="border border-gray-300 p-2">
+                      Số điện thoại
+                    </th>
+                    <th className="border border-gray-300 p-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers?.map((user) => (
+                    <tr key={user?.id}>
+                      <td className="border border-gray-300 p-2 text-center">
+                        {user?.fullName}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center">
+                        {user?.wallet?.money}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center">
+                        {user?.phone}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center flex justify-around">
+                        <Button
+                          variant="text"
+                          color="primary"
+                          onClick={() => handleViewDetails(user)}
+                        >
+                          Chi tiết
+                        </Button>
+                        {/* <Button
+                          variant="text"
+                          color="secondary"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          Sửa
+                        </Button> */}
+                        <Button
+                          variant="text"
+                          color="error"
+                          onClick={() => handleOpenDeleteConfirm(user)}
+                        >
+                          Xóa
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-between mt-4">
                 <Button
-                  variant="text"
+                  variant="contained"
                   color="primary"
-                  onClick={() => handleViewDetails(user)}
+                  onClick={handlePreviousPage}
+                  disabled={page === 1}
                 >
-                  Chi tiết
+                  Trang trước
                 </Button>
                 <Button
-                  variant="text"
-                  color="secondary"
-                  onClick={() => handleEditUser(user)}
+                  variant="contained"
+                  color="primary"
+                  onClick={handleNextPage}
                 >
-                  Sửa
+                  Trang sau
                 </Button>
-                <Button
-                  variant="text"
-                  color="error"
-                  onClick={() => handleOpenDeleteConfirm(user)}
-                >
-                  Xóa
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </>
+          )}
+        </>
+      )}
 
       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
         <DialogTitle>
@@ -233,28 +323,35 @@ export default function Users() {
         </DialogTitle>
         <DialogContent>
           <TextField
-            label="Tên"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={newUser.name}
-            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-          />
-          <TextField
-            label="Điểm"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={newUser.points}
-            onChange={(e) => setNewUser({ ...newUser, points: e.target.value })}
-          />
-          <TextField
             label="Số điện thoại"
             variant="outlined"
             fullWidth
             margin="normal"
             value={newUser.phone}
             onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+          />
+          <TextField
+            label="Mật khẩu"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={newUser.password}
+            onChange={(e) =>
+              setNewUser({
+                ...newUser,
+                password: e.target.value,
+              })
+            }
+            error={!!passwordError}
+            helperText={passwordError}
+          />
+          <TextField
+            label="Mã giới thiệu"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={newUser.code}
+            onChange={(e) => setNewUser({ ...newUser, code: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
@@ -278,10 +375,9 @@ export default function Users() {
               gap: '1rem',
             }}
           >
-            <p>Tên: {selectedUser.name}</p>
-            <p>Điểm: {selectedUser.points}</p>
+            <p>Tên: {selectedUser.fullName}</p>
+            <p>Điểm: {selectedUser.wallet.money}</p>
             <p>Số điện thoại: {selectedUser.phone}</p>
-            <p>Số dư: {selectedUser.balance}</p>
             <p>Lịch sử chơi gần đây:</p>
             <Button
               variant="contained"
@@ -357,6 +453,34 @@ export default function Users() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert
+          onClose={() => setError(null)}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+      >
+        <Alert
+          onClose={() => setSuccessMessage(null)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 export default function Dashboard() {
   const { logout, isLoggedOut } = useAuth();
   const navigate = useNavigate();
-  const role = localStorage.getItem('role');
+  let role = localStorage.getItem('role');
   const handleLogout = () => {
     logout();
   };

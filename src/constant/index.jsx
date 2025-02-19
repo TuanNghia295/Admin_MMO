@@ -54,3 +54,30 @@ export const ROLE = {
   ADMIN: 'MANAGER',
   SALE: 'SALE',
 };
+
+export const ErrorCode = {
+  // Common Validation
+  // Odd Even
+  OD001: 'OD001',
+  OD002: 'OD002',
+
+  // Validation
+  V001: 'V001',
+
+  // User
+  U002: 'U002',
+
+  // Sale
+  S001: 'S001',
+  S002: 'S002',
+  S003: 'S003',
+
+  // SESSION
+  SE001: 'SE001',
+
+  // Wallet
+  W003: 'W003',
+
+  // Setting
+  ST001: 'ST001',
+};
