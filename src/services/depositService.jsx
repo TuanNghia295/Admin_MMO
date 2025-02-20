@@ -28,6 +28,18 @@ const acceptDeposit = async (transactionId) => {
   return response.data;
 };
 
+// Nạp tiền thủ công
+const depositManually = async ({ userId, amount }) => {
+  console.log('userId, amount', userId);
+  console.log('userId, amount', parseFloat(amount));
+
+  const res = await axiosClient.post(`/wallets/deposit?userId=${userId}`, {
+    amount,
+  });
+  console.log('res 😎😎😎😎', res.data);
+  return res.data;
+};
+
 // Từ chối giao dịch
 const rejectDeposit = async (transactionId) => {
   const response = await axiosClient.post(
@@ -86,5 +98,27 @@ export const useDeposit = ({ limit, page, q, order }) => {
     isLoadingAcceptDeposit,
     rejectDepositMutation,
     isLoadingRejectDeposit,
+  };
+};
+
+export const useDepositManually = () => {
+  // mutate việc nạp tiền thủ công
+  const queryClient = useQueryClient();
+  const {
+    mutate: depositManuallyMutation,
+    isPending: isLoadingDepositManually,
+  } = useMutation({
+    mutationFn: depositManually,
+    onSuccess: () => {
+      queryClient.invalidateQueries('listDeposits');
+    },
+    onError: (error) => {
+      console.log('Error when deposit manually:', error);
+    },
+  });
+
+  return {
+    depositManuallyMutation,
+    isLoadingDepositManually,
   };
 };

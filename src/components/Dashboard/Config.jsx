@@ -1,33 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
   Button,
-  Box,
   Typography,
   Paper,
+  Snackbar,
+  Alert,
 } from '@mui/material';
+import { useSetting } from '../../services/settingService';
 
 export default function Config() {
-  const [selectedGame, setSelectedGame] = useState('');
-  const [betPercentage, setBetPercentage] = useState('');
-  const [countdownTime, setCountdownTime] = useState('');
+  // const [selectedGame, setSelectedGame] = useState('');
 
-  const handleSave = () => {
-    // Save the configuration for the selected game to the server or state management
-    console.log(
-      'Game:',
-      selectedGame,
-      'Bet percentage:',
-      betPercentage,
-      'Countdown time:',
-      countdownTime
-    );
+  const [profitPercent, setProfitPercent] = useState(0);
+  const [sessionTime, setSessionTime] = useState(0);
+  const {
+    setting,
+    defaultSetting,
+    isLoadingSetting,
+    isDefaultLoading,
+    configSuccess,
+    configError,
+  } = useSetting();
+
+  const handleSave = async () => {
+    setting({ profitPercent, sessionTime });
   };
+
+  useEffect(() => {
+    if (!isDefaultLoading) {
+      setProfitPercent(defaultSetting.profitPercent);
+      setSessionTime(defaultSetting.sessionTime);
+    }
+  }, [isDefaultLoading]);
+
+  useEffect(() => {
+    if (configSuccess) {
+      setProfitPercent(profitPercent);
+      setSessionTime(sessionTime);
+    }
+  }, [configSuccess]);
 
   return (
     <Container maxWidth="lg">
@@ -38,7 +51,7 @@ export default function Config() {
         <Typography variant="h5" component="h2" gutterBottom>
           Trò chơi
         </Typography>
-        <FormControl fullWidth sx={{ mb: 4 }}>
+        {/* <FormControl fullWidth sx={{ mb: 4 }}>
           <InputLabel id="game-select-label">Chọn loại trò chơi</InputLabel>
           <Select
             labelId="game-select-label"
@@ -50,39 +63,51 @@ export default function Config() {
             <MenuItem value="Game Đoán Số">Game Đoán Số</MenuItem>
             <MenuItem value="Game Tài Lộc">Game Tài Lộc</MenuItem>
           </Select>
-        </FormControl>
-
+        </FormControl> */}
+        {/* 
         {selectedGame && (
-          <>
-            <TextField
-              label="Cấu hình % của ô cược"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={betPercentage}
-              onChange={(e) => setBetPercentage(e.target.value)}
-              sx={{ mb: 4 }}
-            />
-            <TextField
-              label="Cấu hình thời gian đếm ngược của phiên (giây)"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={countdownTime}
-              onChange={(e) => setCountdownTime(e.target.value)}
-              sx={{ mb: 4 }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSave}
-              fullWidth
-            >
-              Lưu
-            </Button>
-          </>
-        )}
+        )} */}
+        <>
+          <TextField
+            label="Cấu hình % của ô cược"
+            variant="outlined"
+            fullWidth
+            type="number"
+            value={profitPercent}
+            onChange={(e) => setProfitPercent(e.target.value)}
+            sx={{ mb: 4 }}
+          />
+        </>
+        <TextField
+          label="Cấu hình thời gian đếm ngược của phiên (giây)"
+          variant="outlined"
+          fullWidth
+          type="number"
+          value={sessionTime}
+          onChange={(e) => setSessionTime(e.target.value)}
+          sx={{ mb: 4 }}
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSave}
+          fullWidth
+        >
+          Lưu
+        </Button>
       </Paper>
+
+      <Snackbar open={configSuccess} autoHideDuration={6000} onClose={() => {}}>
+        <Alert onClose={() => {}} severity="success" sx={{ width: '100%' }}>
+          Cấu hình thành công!
+        </Alert>
+      </Snackbar>
+
+      <Snackbar open={configError} autoHideDuration={6000} onClose={() => {}}>
+        <Alert onClose={() => {}} severity="error" sx={{ width: '100%' }}>
+          Cấu hình thất bại!
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

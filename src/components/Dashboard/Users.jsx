@@ -14,7 +14,8 @@ import { useUser } from '../../services/userService';
 import { ErrorCode } from '../../constant';
 import InOutHistory from '../InOutHistory';
 import InOutDialogComponent from '../InOutDialogComponent';
-import { useDeposit } from '../../services/depositService';
+import { useDepositManually } from '../../services/depositService';
+import { useWidthdrawManually } from '../../services/withdrawService';
 
 export default function Users() {
   const [page, setPage] = useState(1);
@@ -33,6 +34,9 @@ export default function Users() {
     q: searchTerm,
     order: 'DESC',
   });
+
+  const { depositManuallyMutation } = useDepositManually();
+  const { widthdrawManuallyMutation } = useWidthdrawManually();
 
   const filteredUsers = listUser.filter((user) =>
     searchTerm
@@ -197,13 +201,56 @@ export default function Users() {
     setSelectedUser(null);
   };
 
-  const handleDeposit = (newDeposit) => {
-    console.log('Deposit:', newDeposit);
+  const handleOpenDepositDialog = (user) => {
+    setSelectedUser(user);
     setIsDepositDialogOpen(true);
   };
 
-  const handleWithdraw = () => {
+  const handleOpenWidthdrawDialog = (user) => {
+    setSelectedUser(user);
     setIsWithdrawDialogOpen(true);
+  };
+
+  const handleDeposit = () => {
+    if (selectedUser && newDeposit) {
+      depositManuallyMutation(
+        { userId: selectedUser.id, amount: newDeposit },
+        {
+          onSuccess: () => {
+            setSuccessMessage('Nạp điểm thành công');
+            setIsDepositDialogOpen(false);
+          },
+          onError: (error) => {
+            setError('Nạp điểm thất bại');
+            console.error('Deposit failed:', error);
+          },
+        }
+      );
+    }
+  };
+
+  const handleWithdraw = () => {
+    if (selectedUser && newWithdraw) {
+      widthdrawManuallyMutation(
+        { userId: selectedUser.id, amount: newWithdraw },
+        {
+          onSuccess: () => {
+            setSuccessMessage('Rút điểm thành công');
+            setIsWithdrawDialogOpen(false);
+          },
+          onError: (error) => {
+            switch (error?.data?.errorCode) {
+              case ErrorCode.W003:
+                setError('Số dư không đủ');
+                break;
+              default:
+                setError('Rút điểm thất bại');
+              // console.error('Deposit failed:', error?.data?.errorCode);
+            }
+          },
+        }
+      );
+    }
   };
 
   const handleChangePassword = () => {
@@ -304,6 +351,13 @@ export default function Users() {
                       >
                         Chi tiết
                       </Button>
+                      {/* <Button
+                        variant="text"
+                        color="primary"
+                        onClick={() => handleOpenDepositDialog(user)}
+                      >
+                        Nạp
+                      </Button> */}
                       <Button
                         variant="text"
                         color="error"
@@ -398,7 +452,7 @@ export default function Users() {
             }}
           >
             <p>Tên: {selectedUser.fullName}</p>
-            <p>Điểm: {selectedUser.wallet.money}</p>
+            <p>Điểm: {formatNumber(selectedUser.wallet.money)}</p>
             <p>Số điện thoại: {selectedUser.phone}</p>
             <div className="flex justify-around">
               <Button
@@ -421,10 +475,16 @@ export default function Users() {
             </div>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleDeposit} color="primary">
+            <Button
+              onClick={() => handleOpenDepositDialog(selectedUser)}
+              color="primary"
+            >
               Nạp
             </Button>
-            <Button onClick={handleWithdraw} color="primary">
+            <Button
+              color="primary"
+              onClick={() => handleOpenWidthdrawDialog(selectedUser)}
+            >
               Rút
             </Button>
             <Button onClick={handleChangePassword} color="primary">
@@ -498,8 +558,8 @@ export default function Users() {
         onClose={() => setIsDepositDialogOpen(false)}
         title="Nhập số điểm cần nạp"
         value={newDeposit}
-        onChange={(e) => setNewDeposit(e.target.value)}
-        onSave={() => handleDeposit(newDeposit)}
+        onChange={(e) => setNewDeposit(Number(e.target.value))}
+        onSave={handleDeposit}
       />
 
       <InOutDialogComponent
@@ -507,7 +567,7 @@ export default function Users() {
         onClose={() => setIsWithdrawDialogOpen(false)}
         title="Nhập số điểm cần rút"
         value={newWithdraw}
-        onChange={(e) => setNewWithdraw(e.target.value)}
+        onChange={(e) => setNewWithdraw(Number(e.target.value))}
         onSave={handleWithdraw}
       />
 

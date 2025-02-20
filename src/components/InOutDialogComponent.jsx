@@ -8,10 +8,6 @@ import {
   Button,
 } from '@mui/material';
 
-const formatNumber = (value) => {
-  return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-};
-
 const InOutDialogComponent = ({
   open,
   onClose,
@@ -20,11 +16,6 @@ const InOutDialogComponent = ({
   onChange,
   onSave,
 }) => {
-  const handleInputChange = (e) => {
-    const formattedValue = formatNumber(e.target.value.replace(/\./g, ''));
-    onChange({ target: { value: formattedValue } });
-  };
-
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
@@ -36,7 +27,7 @@ const InOutDialogComponent = ({
           type="text"
           margin="normal"
           value={value}
-          onChange={handleInputChange}
+          onChange={onChange}
         />
       </DialogContent>
       <DialogActions>

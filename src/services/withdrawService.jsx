@@ -37,6 +37,15 @@ const rejectWithDraw = async (transactionId) => {
   return response.data;
 };
 
+//  Rút tiền thủ công
+const widthdrawManually = async ({ userId, amount }) => {
+  const res = await axiosClient.post(`/wallets/withdraw?userId=${userId}`, {
+    amount,
+  });
+  console.log('res 😎😎😎😎', res.data);
+  return res.data;
+};
+
 export const useWithDraw = ({ limit, page, q, order }) => {
   const queryClient = useQueryClient();
   const { data, isLoading: isLoadingListWithDraw } = useQuery({
@@ -87,5 +96,27 @@ export const useWithDraw = ({ limit, page, q, order }) => {
     isLoadingAcceptWithDraw,
     rejectWithDrawMutation,
     isLoadingRejectWithDraw,
+  };
+};
+
+export const useWidthdrawManually = () => {
+  // mutate việc nạp tiền thủ công
+  const queryClient = useQueryClient();
+  const {
+    mutate: widthdrawManuallyMutation,
+    isPending: isLoadingWidthdrawManually,
+  } = useMutation({
+    mutationFn: widthdrawManually,
+    onSuccess: () => {
+      queryClient.invalidateQueries('listDeposits');
+    },
+    onError: (error) => {
+      console.log('Error when deposit manually:', error);
+    },
+  });
+
+  return {
+    widthdrawManuallyMutation,
+    isLoadingWidthdrawManually,
   };
 };
