@@ -1,59 +1,65 @@
-import React, { useState } from 'react';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from '@mui/material';
-
-const initialWithdrawals = [
-  { id: 1, user: 'John Doe', amount: 100, status: 'Pending' },
-  { id: 2, user: 'Jane Smith', amount: 200, status: 'Pending' },
-  { id: 3, user: 'Alice Johnson', amount: 150, status: 'Pending' },
-  // Add more withdrawal requests as needed
-];
+import { useEffect, useState } from 'react';
+import { Button } from '@mui/material';
+import { useWithDraw } from '../../services/withdrawService';
 
 export default function Withdraw() {
-  const [withdrawals, setWithdrawals] = useState(initialWithdrawals);
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [page, setPage] = useState(1);
+  const [desiredPage, setDesiredPage] = useState(1);
+  const {
+    isLoadingListWithDraw,
+    listWithDraws,
+    totalPage,
+    acceptWithDrawMutation,
+    isLoadingAcceptWithDraw,
+    rejectWithDrawMutation,
+    isLoadingRejectWithDraw,
+  } = useWithDraw({
+    limit: 8,
+    page: desiredPage,
+  });
 
-  const handleApprove = (withdrawalId) => {
-    setWithdrawals(
-      withdrawals.map((withdrawal) =>
-        withdrawal.id === withdrawalId
-          ? { ...withdrawal, status: 'Approved' }
-          : withdrawal
-      )
-    );
-    setIsDialogOpen(false);
+  const handleAccept = (withdrawId) => {
+    acceptWithDrawMutation(withdrawId);
+    if (isLoadingAcceptWithDraw) return;
   };
 
-  const handleReject = (withdrawalId) => {
-    setWithdrawals(
-      withdrawals.map((withdrawal) =>
-        withdrawal.id === withdrawalId
-          ? { ...withdrawal, status: 'Rejected' }
-          : withdrawal
-      )
-    );
-    setIsDialogOpen(false);
+  const handleReject = (withdrawId) => {
+    rejectWithDrawMutation(withdrawId);
+    if (isLoadingRejectWithDraw) return;
   };
 
-  const handleViewDetails = (withdrawal) => {
-    setSelectedWithdrawal(withdrawal);
-    setIsDialogOpen(true);
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Đang chờ';
+      case 'ACCEPTED':
+        return 'Đã duyệt';
+      case 'REJECTED':
+        return 'Đã từ chối';
+      default:
+        return status;
+    }
   };
 
-  const handleCloseDetails = () => {
-    setSelectedWithdrawal(null);
-    setIsDialogOpen(false);
+  // chuyển trang
+  const handleNextPage = () => {
+    setDesiredPage((prev) => prev + 1);
   };
+  const handlePreviousPage = () => {
+    setDesiredPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  useEffect(() => {
+    if (!isLoadingListWithDraw) {
+      setWithdrawals(listWithDraws);
+      setPage(desiredPage);
+    }
+  }, [isLoadingListWithDraw, listWithDraws, desiredPage]);
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Quản lý yêu cầu rút điểm</h1>
+      <h1 className="text-2xl font-bold mb-4">Quản lý rút điểm</h1>
       <table className="w-full border-collapse border border-gray-300 mt-4">
         <thead>
           <tr>
@@ -64,62 +70,66 @@ export default function Withdraw() {
           </tr>
         </thead>
         <tbody>
-          {withdrawals.map((withdrawal) => (
-            <tr key={withdrawal.id}>
+          {withdrawals?.map((withdraw) => (
+            <tr key={withdraw.id}>
               <td className="border border-gray-300 p-2 text-center">
-                {withdrawal.user}
+                {withdraw?.user?.fullName}
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {withdrawal.amount}
+                {withdraw?.amount}
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {withdrawal.status}
+                {getStatusText(withdraw?.status)}
               </td>
               <td className="border border-gray-300 p-2 text-center flex justify-around">
                 <Button
                   variant="text"
                   color="primary"
-                  onClick={() => handleViewDetails(withdrawal)}
+                  onClick={() => handleAccept(withdraw?.id)}
+                  disabled={
+                    withdraw?.status === 'ACCEPTED' ||
+                    withdraw?.status === 'REJECTED'
+                  }
                 >
-                  Chi tiết
+                  Chấp nhận
+                </Button>
+                <Button
+                  variant="text"
+                  color="error"
+                  onClick={() => handleReject(withdraw?.id)}
+                  disabled={
+                    withdraw?.status === 'ACCEPTED' ||
+                    withdraw?.status === 'REJECTED'
+                  }
+                >
+                  Từ chối
                 </Button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      {selectedWithdrawal && (
-        <Dialog open={isDialogOpen} onClose={handleCloseDetails}>
-          <DialogTitle
-            style={{ width: 400, display: 'flex', justifyContent: 'center' }}
-          >
-            Chi tiết yêu cầu rút điểm
-          </DialogTitle>
-          <DialogContent className="flex gap-2 flex-col">
-            <p>Người dùng: {selectedWithdrawal.user}</p>
-            <p>Số điểm: {selectedWithdrawal.amount}</p>
-            <p>Trạng thái: {selectedWithdrawal.status}</p>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => handleApprove(selectedWithdrawal.id)}
-              color="primary"
-            >
-              Chấp nhận
-            </Button>
-            <Button
-              onClick={() => handleReject(selectedWithdrawal.id)}
-              color="secondary"
-            >
-              Từ chối
-            </Button>
-            <Button onClick={handleCloseDetails} color="primary">
-              Đóng
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      <div className="flex justify-between mt-4 text-center items-center">
+        <Button
+          variant="text"
+          color="warning"
+          onClick={handlePreviousPage}
+          disabled={page === 1}
+        >
+          Trang trước
+        </Button>
+        <span>
+          {page}/{totalPage}
+        </span>
+        <Button
+          variant="text"
+          color="warning"
+          onClick={handleNextPage}
+          disabled={page === totalPage}
+        >
+          Trang sau
+        </Button>
+      </div>
     </div>
   );
 }

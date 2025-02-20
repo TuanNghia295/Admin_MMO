@@ -1,52 +1,61 @@
-import React, { useState } from 'react';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from '@mui/material';
-
-const initialDeposits = [
-  { id: 1, user: 'John Doe', amount: 100, status: 'Pending' },
-  { id: 2, user: 'Jane Smith', amount: 200, status: 'Pending' },
-  { id: 3, user: 'Alice Johnson', amount: 150, status: 'Pending' },
-  // Add more deposit requests as needed
-];
+import React, { useEffect, useState } from 'react';
+import { Button } from '@mui/material';
+import { useDeposit } from '../../services/depositService';
 
 export default function Deposit() {
-  const [deposits, setDeposits] = useState(initialDeposits);
-  const [selectedDeposit, setSelectedDeposit] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deposits, setDeposits] = useState([]);
+  const [page, setPage] = useState(1);
+  const [desiredPage, setDesiredPage] = useState(1);
+  const {
+    isLoadingListDeposit,
+    listDeposits,
+    totalPage,
+    acceptDepositMutation,
+    isLoadingAcceptDeposit,
+    rejectDepositMutation,
+    isLoadingRejectDeposit,
+  } = useDeposit({
+    limit: 8,
+    page: desiredPage,
+  });
 
   const handleAccept = (depositId) => {
-    setDeposits(
-      deposits.map((deposit) =>
-        deposit.id === depositId ? { ...deposit, status: 'Accepted' } : deposit
-      )
-    );
-    setIsDialogOpen(false);
+    acceptDepositMutation(depositId);
+    if (isLoadingAcceptDeposit) return;
   };
 
   const handleReject = (depositId) => {
-    setDeposits(
-      deposits.map((deposit) =>
-        deposit.id === depositId ? { ...deposit, status: 'Rejected' } : deposit
-      )
-    );
-    setIsDialogOpen(false);
+    rejectDepositMutation(depositId);
+    if (isLoadingRejectDeposit) return;
   };
 
-  const handleViewDetails = (deposit) => {
-    setSelectedDeposit(deposit);
-    setIsDialogOpen(true);
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Đang chờ';
+      case 'ACCEPTED':
+        return 'Đã duyệt';
+      case 'REJECTED':
+        return 'Đã từ chối';
+      default:
+        return status;
+    }
   };
 
-  const handleCloseDetails = () => {
-    setSelectedDeposit(null);
-    setIsDialogOpen(false);
+  // chuyển trang
+  const handleNextPage = () => {
+    setDesiredPage((prev) => prev + 1);
   };
+  const handlePreviousPage = () => {
+    setDesiredPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  useEffect(() => {
+    if (!isLoadingListDeposit) {
+      setDeposits(listDeposits);
+      setPage(desiredPage);
+    }
+  }, [isLoadingListDeposit, listDeposits, desiredPage]);
 
   return (
     <div className="p-4">
@@ -61,58 +70,66 @@ export default function Deposit() {
           </tr>
         </thead>
         <tbody>
-          {deposits.map((deposit) => (
+          {deposits?.map((deposit) => (
             <tr key={deposit.id}>
               <td className="border border-gray-300 p-2 text-center">
-                {deposit.user}
+                {deposit?.user?.fullName}
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {deposit.amount}
+                {deposit?.amount}
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {deposit.status}
+                {getStatusText(deposit?.status)}
               </td>
               <td className="border border-gray-300 p-2 text-center flex justify-around">
                 <Button
                   variant="text"
                   color="primary"
-                  onClick={() => handleViewDetails(deposit)}
+                  onClick={() => handleAccept(deposit?.id)}
+                  disabled={
+                    deposit?.status === 'ACCEPTED' ||
+                    deposit?.status === 'REJECTED'
+                  }
                 >
-                  Chi tiết
+                  Chấp nhận
+                </Button>
+                <Button
+                  variant="text"
+                  color="error"
+                  onClick={() => handleReject(deposit?.id)}
+                  disabled={
+                    deposit?.status === 'ACCEPTED' ||
+                    deposit?.status === 'REJECTED'
+                  }
+                >
+                  Từ chối
                 </Button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      {selectedDeposit && (
-        <Dialog open={isDialogOpen} onClose={handleCloseDetails}>
-          <DialogTitle>Chi tiết nạp điểm</DialogTitle>
-          <DialogContent sx={{ minWidth: '400px' }}>
-            <p>Người dùng: {selectedDeposit.user}</p>
-            <p>Số điểm: {selectedDeposit.amount}</p>
-            <p>Trạng thái: {selectedDeposit.status}</p>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => handleAccept(selectedDeposit.id)}
-              color="primary"
-            >
-              Chấp nhận
-            </Button>
-            <Button
-              onClick={() => handleReject(selectedDeposit.id)}
-              color="secondary"
-            >
-              Từ chối
-            </Button>
-            <Button onClick={handleCloseDetails} color="primary">
-              Đóng
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      <div className="flex justify-between mt-4 text-center items-center">
+        <Button
+          variant="text"
+          color="warning"
+          onClick={handlePreviousPage}
+          disabled={page === 1}
+        >
+          Trang trước
+        </Button>
+        <span>
+          {page}/{totalPage}
+        </span>
+        <Button
+          variant="text"
+          color="warning"
+          onClick={handleNextPage}
+          disabled={page === totalPage}
+        >
+          Trang sau
+        </Button>
+      </div>
     </div>
   );
 }

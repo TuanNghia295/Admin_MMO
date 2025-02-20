@@ -188,18 +188,21 @@ export default function Sale() {
               ))}
             </tbody>
           </table>
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between mt-4 text-center items-center">
             <Button
-              variant="contained"
-              color="primary"
+              variant="text"
+              color="warning"
               onClick={handlePreviousPage}
               disabled={page === 1}
             >
               Trang trước
             </Button>
+            <span>
+              {page}/{totalPage}
+            </span>
             <Button
-              variant="contained"
-              color="primary"
+              variant="text"
+              color="warning"
               onClick={handleNextPage}
               disabled={page === totalPage}
             >

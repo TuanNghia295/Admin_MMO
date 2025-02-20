@@ -263,79 +263,77 @@ export default function Users() {
           Thêm người dùng
         </Button>
       </div>
-      {isLoadingListUser ? (
-        <LoadingPage />
-      ) : (
-        <>
-          {filteredUsers.length === 0 && searchTerm ? (
-            <p>Người dùng không tồn tại</p>
-          ) : (
-            <>
-              <table className="w-full border-collapse border border-gray-300 mt-4">
-                <thead>
-                  <tr>
-                    <th className="border border-gray-300 p-2">Tên</th>
-                    <th className="border border-gray-300 p-2">Điểm</th>
-                    <th className="border border-gray-300 p-2">
-                      Số điện thoại
-                    </th>
-                    <th className="border border-gray-300 p-2"></th>
+
+      <>
+        {filteredUsers.length === 0 && searchTerm ? (
+          <p>Người dùng không tồn tại</p>
+        ) : (
+          <>
+            <table className="w-full border-collapse border border-gray-300 mt-4">
+              <thead>
+                <tr>
+                  <th className="border border-gray-300 p-2">Tên</th>
+                  <th className="border border-gray-300 p-2">Điểm</th>
+                  <th className="border border-gray-300 p-2">Số điện thoại</th>
+                  <th className="border border-gray-300 p-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers?.map((user) => (
+                  <tr key={user?.id}>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {user?.fullName}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {user?.wallet?.money}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {user?.phone}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-center flex justify-around">
+                      <Button
+                        variant="text"
+                        color="primary"
+                        onClick={() => handleViewDetails(user)}
+                      >
+                        Chi tiết
+                      </Button>
+                      <Button
+                        variant="text"
+                        color="error"
+                        onClick={() => handleOpenDeleteConfirm(user)}
+                      >
+                        Xóa
+                      </Button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers?.map((user) => (
-                    <tr key={user?.id}>
-                      <td className="border border-gray-300 p-2 text-center">
-                        {user?.fullName}
-                      </td>
-                      <td className="border border-gray-300 p-2 text-center">
-                        {user?.wallet?.money}
-                      </td>
-                      <td className="border border-gray-300 p-2 text-center">
-                        {user?.phone}
-                      </td>
-                      <td className="border border-gray-300 p-2 text-center flex justify-around">
-                        <Button
-                          variant="text"
-                          color="primary"
-                          onClick={() => handleViewDetails(user)}
-                        >
-                          Chi tiết
-                        </Button>
-                        <Button
-                          variant="text"
-                          color="error"
-                          onClick={() => handleOpenDeleteConfirm(user)}
-                        >
-                          Xóa
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="flex justify-between mt-4">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handlePreviousPage}
-                  disabled={page === 1}
-                >
-                  Trang trước
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleNextPage}
-                  disabled={page === totalPage}
-                >
-                  Trang sau
-                </Button>
-              </div>
-            </>
-          )}
-        </>
-      )}
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-between mt-4">
+              <Button
+                variant="text"
+                color="warning"
+                onClick={handlePreviousPage}
+                disabled={page === 1}
+              >
+                Trang trước
+              </Button>
+              <span>
+                {page}/{totalPage}
+              </span>
+              <Button
+                variant="text"
+                color="warning"
+                onClick={handleNextPage}
+                disabled={page === totalPage}
+              >
+                Trang sau
+              </Button>
+            </div>
+          </>
+        )}
+      </>
 
       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
         <DialogTitle>
