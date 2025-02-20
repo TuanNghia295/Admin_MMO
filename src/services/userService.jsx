@@ -58,10 +58,6 @@ export const useUser = ({ limit, page, q, order }) => {
   const pagination = data?.pagination || {};
   const totalPage = pagination.totalPages || 0;
 
-  console.log('List user:', listUser);
-  console.log('Pagination:', pagination);
-  console.log('Total users:', totalPage);
-
   const { mutate: createUserMutation, isLoading: isLoadingCreateUser } =
     useMutation({
       mutationFn: createUser,

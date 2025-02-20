@@ -107,7 +107,7 @@ export default function Sale() {
 
   // Danh sách sale được cập nhật khi có dữ liệu mới từ API
   useEffect(() => {
-    if (listSales) {
+    if (!isLoadingListSales) {
       setSales(listSales);
       setPage(desiredPage);
     }

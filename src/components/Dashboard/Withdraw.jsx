@@ -50,6 +50,13 @@ export default function Withdraw() {
     setDesiredPage((prev) => Math.max(prev - 1, 1));
   };
 
+  const formatNumber = (value) => {
+    if (typeof value !== 'string' && typeof value !== 'number') {
+      return '';
+    }
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   useEffect(() => {
     if (!isLoadingListWithDraw) {
       setWithdrawals(listWithDraws);
@@ -76,7 +83,7 @@ export default function Withdraw() {
                 {withdraw?.user?.fullName}
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {withdraw?.amount}
+                {formatNumber(withdraw?.amount)}
               </td>
               <td className="border border-gray-300 p-2 text-center">
                 {getStatusText(withdraw?.status)}

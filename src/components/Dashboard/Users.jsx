@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   TextField,
@@ -11,9 +11,10 @@ import {
 } from '@mui/material';
 import RecentHistoryDialog from '../RecentHistoryDialog';
 import { useUser } from '../../services/userService';
-import LoadingPage from '../../pages/LoadingPage';
 import { ErrorCode } from '../../constant';
 import InOutHistory from '../InOutHistory';
+import InOutDialogComponent from '../InOutDialogComponent';
+import { useDeposit } from '../../services/depositService';
 
 export default function Users() {
   const [page, setPage] = useState(1);
@@ -62,9 +63,20 @@ export default function Users() {
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
+  const [newDeposit, setNewDeposit] = useState('');
+  const [newWithdraw, setNewWithdraw] = useState('');
+
+  const formatNumber = (value) => {
+    if (typeof value !== 'string' && typeof value !== 'number') {
+      return '';
+    }
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
 
   useEffect(() => {
-    if (listUser) {
+    if (!isLoadingListUser) {
       setUsers(listUser);
       setPage(desiredPage);
     }
@@ -84,13 +96,6 @@ export default function Users() {
       password: '',
       code: '',
     });
-    setPasswordError('');
-    setIsDialogOpen(true);
-  };
-
-  const handleEditUser = (user) => {
-    setIsEditMode(true);
-    setNewUser(user);
     setPasswordError('');
     setIsDialogOpen(true);
   };
@@ -192,12 +197,13 @@ export default function Users() {
     setSelectedUser(null);
   };
 
-  const handleDeposit = () => {
-    // Implement deposit logic here
+  const handleDeposit = (newDeposit) => {
+    console.log('Deposit:', newDeposit);
+    setIsDepositDialogOpen(true);
   };
 
   const handleWithdraw = () => {
-    // Implement withdraw logic here
+    setIsWithdrawDialogOpen(true);
   };
 
   const handleChangePassword = () => {
@@ -285,7 +291,7 @@ export default function Users() {
                       {user?.fullName}
                     </td>
                     <td className="border border-gray-300 p-2 text-center">
-                      {user?.wallet?.money}
+                      {formatNumber(user?.wallet?.money)}
                     </td>
                     <td className="border border-gray-300 p-2 text-center">
                       {user?.phone}
@@ -394,7 +400,6 @@ export default function Users() {
             <p>Tên: {selectedUser.fullName}</p>
             <p>Điểm: {selectedUser.wallet.money}</p>
             <p>Số điện thoại: {selectedUser.phone}</p>
-            <p>Lịch sử chơi gần đây:</p>
             <div className="flex justify-around">
               <Button
                 variant="contained"
@@ -487,6 +492,24 @@ export default function Users() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <InOutDialogComponent
+        open={isDepositDialogOpen}
+        onClose={() => setIsDepositDialogOpen(false)}
+        title="Nhập số điểm cần nạp"
+        value={newDeposit}
+        onChange={(e) => setNewDeposit(e.target.value)}
+        onSave={() => handleDeposit(newDeposit)}
+      />
+
+      <InOutDialogComponent
+        open={isWithdrawDialogOpen}
+        onClose={() => setIsWithdrawDialogOpen(false)}
+        title="Nhập số điểm cần rút"
+        value={newWithdraw}
+        onChange={(e) => setNewWithdraw(e.target.value)}
+        onSave={handleWithdraw}
+      />
 
       <Snackbar
         open={!!error}

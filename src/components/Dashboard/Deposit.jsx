@@ -50,6 +50,13 @@ export default function Deposit() {
     setDesiredPage((prev) => Math.max(prev - 1, 1));
   };
 
+  const formatNumber = (value) => {
+    if (typeof value !== 'string' && typeof value !== 'number') {
+      return '';
+    }
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   useEffect(() => {
     if (!isLoadingListDeposit) {
       setDeposits(listDeposits);
@@ -76,7 +83,7 @@ export default function Deposit() {
                 {deposit?.user?.fullName}
               </td>
               <td className="border border-gray-300 p-2 text-center">
-                {deposit?.amount}
+                {formatNumber(deposit?.amount)}
               </td>
               <td className="border border-gray-300 p-2 text-center">
                 {getStatusText(deposit?.status)}
