@@ -8,15 +8,46 @@ import Withdraw from './components/Dashboard/Withdraw';
 import Config from './components/Dashboard/Config';
 import Sale from './components/Dashboard/Sale';
 import { useAuth } from './services/authService';
+import { useEffect } from 'react';
+import {
+  socketConnect,
+  socketDisconnect,
+  socketOn,
+} from './services/socketService';
+import { useWithDraw } from './services/withdrawService';
+import { useDeposit } from './services/depositService';
+import { useQueryClient } from '@tanstack/react-query';
 
 function PrivateRoute({ children }) {
   const { user, isLoadingUser } = useAuth();
+  const accessToken = localStorage.getItem('token');
+  const client = useQueryClient();
+  useEffect(() => {
+    socketConnect(accessToken);
 
+    socketOn('transaction.deposit', (data) => {
+      client.invalidateQueries({
+        queryKey: ['listDeposits'],
+      });
+    });
+
+    socketOn('transaction.withdraw', (data) => {
+      console.log('Withdraw:', data);
+      client.invalidateQueries({
+        queryKey: ['listWithDraw'],
+      });
+    });
+
+    return () => {
+      socketDisconnect();
+    };
+  }, [accessToken]);
   if (isLoadingUser) {
     return <div>Loading...</div>;
   }
   if (user) {
     localStorage.setItem('role', user.role);
+
     return children;
   } else {
     return <Navigate to="/" />;

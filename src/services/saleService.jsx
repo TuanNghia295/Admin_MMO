@@ -14,7 +14,6 @@ const fetchSaleListUser = async ({ queryKey }) => {
   if (q) params.append('q', q); // Chỉ thêm q nếu có giá trị
 
   const response = await axiosClient.get(`/sales?${params.toString()}`);
-  console.log(response.data);
   return response; // Dữ liệu trả về có cấu trúc: { data: [...], pagination: { ... } }
 };
 
