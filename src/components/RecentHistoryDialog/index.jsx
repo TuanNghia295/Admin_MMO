@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import 'dayjs/locale/vi'; // Import Vietnamese locale
 export default function RecentHistoryDialog({ open, onClose, history }) {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   return (
-    <Dialog open={open} onClose={onClose} fullScreen>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>
         Lịch sử chơi gần đây
         <IconButton
