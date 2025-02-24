@@ -14,8 +14,6 @@ import {
   socketDisconnect,
   socketOn,
 } from './services/socketService';
-import { useWithDraw } from './services/withdrawService';
-import { useDeposit } from './services/depositService';
 import { useQueryClient } from '@tanstack/react-query';
 
 function PrivateRoute({ children }) {

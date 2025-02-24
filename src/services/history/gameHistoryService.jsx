@@ -8,41 +8,37 @@ const getNumGuessHistory = async ({ queryKey }) => {
 
   const params = new URLSearchParams({ limit, page, order, userId });
   const res = await axiosClient.get(`/num-guess?${params.toString()}`);
-  console.log('res', res);
+  console.log('res doan so', res);
   return res;
 };
 
 export const useNumGuessHistory = ({ limit, page, order, userId }) => {
-  const {
-    data: numGuessHistory,
-    isLoading: isLoadingNumGuessHistory,
-    refetch,
-  } = useQuery({
-    queryKey: [
-      'numGuessHistory',
-      {
-        limit,
-        page,
-        order,
-        userId,
-      },
-    ],
-    queryFn: getNumGuessHistory,
-    enabled: !!localStorage.getItem('role'),
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const { data: numGuessHistory, isLoading: isLoadingNumGuessHistory } =
+    useQuery({
+      queryKey: [
+        'numGuessHistory',
+        {
+          limit,
+          page,
+          order,
+          userId,
+        },
+      ],
+      queryFn: getNumGuessHistory,
+      enabled: !!localStorage.getItem('role'),
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    });
 
   const listNumGuessHistory = numGuessHistory?.data || [];
   const pagination = numGuessHistory?.pagination || {};
-  const totalPage = pagination.totalPages || 0;
+  const totalPageDoanSo = pagination.totalPages || 0;
 
   return {
     numGuessHistory,
     isLoadingNumGuessHistory,
-    refetch,
     listNumGuessHistory,
-    totalPage,
+    totalPageDoanSo,
   };
 };
 
@@ -56,5 +52,31 @@ const getTaiLocHistory = async ({ queryKey }) => {
 };
 
 export const useTaiLocHistory = ({ limit, page, order, userId }) => {
-  const { data: taiLocHistory, isLoading: isLoadingTailoc } = useQuery({});
+  const { data: taiLocHistory, isLoading: isLoadingTailoc } = useQuery({
+    queryKey: [
+      'taiLocHistory',
+      {
+        limit,
+        page,
+        order,
+        userId,
+      },
+    ],
+    queryFn: getTaiLocHistory,
+    enabled: !!localStorage.getItem('role'),
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+  });
+
+  const listTaiLocHistory = taiLocHistory?.data || [];
+  const pagination = taiLocHistory?.pagination || {};
+  const totalPageTaiLoc = pagination.totalPages || 0;
+
+  return {
+    taiLocHistory,
+    isLoadingTailoc,
+    pagination,
+    listTaiLocHistory,
+    totalPageTaiLoc,
+  };
 };

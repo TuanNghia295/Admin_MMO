@@ -32,8 +32,8 @@ axiosClient.interceptors.response.use(
   },
   function (error) {
     if (error.response) {
-      console.log('Something went wrong while sending request to server');
-      console.error(error.response.data);
+      // console.log('Something went wrong while sending request to server');
+      // console.error(error.response.data);
     }
     return Promise.reject(error.response || error.message);
   }
