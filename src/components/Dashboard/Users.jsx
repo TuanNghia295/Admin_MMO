@@ -173,6 +173,8 @@ export default function Users() {
   };
 
   const handleCreateUser = (user) => {
+    console.log('user', user);
+
     createUserMutation(user, {
       onSuccess: (data) => {
         setUsers([...users, data]);
@@ -398,6 +400,15 @@ export default function Users() {
           {isEditMode ? 'Sửa người dùng' : 'Thêm người dùng'}
         </DialogTitle>
         <DialogContent>
+          <TextField
+            label="Họ và tên"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            name="fullName"
+            value={newUser.fullName}
+            onChange={handleInputChange}
+          />
           <TextField
             label="Số điện thoại"
             variant="outlined"
