@@ -153,7 +153,11 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
         )}
         <TablePagination
           component="div"
-          count={value === 'Đoán số' ? totalPageDoanSo : totalPageTaiLoc}
+          count={
+            value === 'Đoán số'
+              ? totalPageDoanSo * rowsPerPage
+              : totalPageTaiLoc * rowsPerPage
+          } // Số lượng bản ghi
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

@@ -1,80 +1,116 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
-  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
-import 'dayjs/locale/vi'; // Import Vietnamese locale
+import { useTransaction } from '../../services/history/transactionHistoryService';
 
-export default function InOutHistory({ open, onClose, history }) {
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+const InOutHistory = ({ open, onClose, userId }) => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const { isLoadingTransaction, listTransactionHistory, totalPageTransaction } =
+    useTransaction({
+      limit: rowsPerPage,
+      page: page + 1,
+      order: 'DESC',
+      userId: 21,
+    });
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const statusMap = {
+    ACCEPTED: { label: 'Chấp nhận', color: 'green' },
+    REJECTED: { label: 'Từ chối', color: 'red' },
+    PENDING: { label: 'Đang xử lý', color: 'orange' },
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
-        Lịch sử chơi gần đây
+        Lịch Sử Nạp Rút
         <IconButton
           aria-label="close"
           onClick={onClose}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
+          sx={{ position: 'absolute', right: 8, top: 8 }}
         >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="vi">
-          <DatePicker
-            label=""
-            value={selectedDate}
-            onChange={(newValue) => setSelectedDate(newValue)}
-            renderInput={(params) => (
-              <TextField {...params} fullWidth sx={{ mb: 4 }} />
-            )}
-          />
-        </LocalizationProvider>
-        <table className="w-full border-collapse border border-gray-300 mt-4">
-          <thead>
-            <tr>
-              <th className="border border-gray-300 p-2">Thời gian</th>
-              <th className="border border-gray-300 p-2">Trò chơi</th>
-              <th className="border border-gray-300 p-2">Thắng/Thua</th>
-              <th className="border border-gray-300 p-2">Tiền thắng / Thua</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history?.map((item, index) => (
-              <tr key={index}>
-                <td className="border border-gray-300 p-2 text-center">
-                  {item?.time}
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  {item?.game}
-                </td>
-                <td className="border border-gray-300 p-2 text-center">
-                  {item?.result}
-                </td>
-                <td
-                  className="border border-gray-300 p-2 text-center"
-                  style={{ color: item.amount > 0 ? 'green' : 'red' }}
-                >
-                  {item?.amount}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {isLoadingTransaction ? (
+          <CircularProgress sx={{ display: 'block', margin: '20px auto' }} />
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Thời Gian</TableCell>
+                  <TableCell>Loại</TableCell>
+                  <TableCell>Trạng Thái</TableCell>
+                  <TableCell>Số Tiền</TableCell>
+                  <TableCell>SĐT</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {listTransactionHistory?.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>{transaction.id}</TableCell>
+                    <TableCell>
+                      {dayjs(transaction.createdAt).format(
+                        'DD/MM/YYYY HH:mm:ss'
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.type === 'DEPOSIT' ? 'Nạp' : 'Rút'}
+                    </TableCell>
+                    <td
+                      className="border border-gray-300 p-2 text-center"
+                      style={{ color: statusMap[transaction.status]?.color }}
+                    >
+                      {statusMap[transaction.status]?.label}
+                    </td>
+                    <TableCell>
+                      {transaction.amount.toLocaleString()} VND
+                    </TableCell>
+                    <TableCell>{transaction.user?.phone || 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        <TablePagination
+          component="div"
+          count={totalPageTransaction * rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default InOutHistory;
