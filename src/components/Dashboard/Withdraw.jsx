@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@mui/material';
+import { Button, Snackbar, Alert } from '@mui/material';
 import { useWithDraw } from '../../services/withdrawService';
 
 export default function Withdraw() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [page, setPage] = useState(1);
   const [desiredPage, setDesiredPage] = useState(1);
+  const [error, setError] = useState(null);
   const {
     isLoadingListWithDraw,
     listWithDraws,
@@ -20,12 +21,28 @@ export default function Withdraw() {
   });
 
   const handleAccept = (withdrawId) => {
-    acceptWithDrawMutation(withdrawId);
+    acceptWithDrawMutation(withdrawId, {
+      onError: (error) => {
+        if (error.data?.errorCode === 'W003') {
+          setError('Tài khoản không đủ tiền');
+        } else {
+          setError('Có lỗi xảy ra');
+        }
+      },
+    });
     if (isLoadingAcceptWithDraw) return;
   };
 
   const handleReject = (withdrawId) => {
-    rejectWithDrawMutation(withdrawId);
+    rejectWithDrawMutation(withdrawId, {
+      onError: (error) => {
+        if (error.data?.errorCode === 'W003') {
+          setError('Tài khoản không đủ tiền');
+        } else {
+          setError('Có lỗi xảy ra');
+        }
+      },
+    });
     if (isLoadingRejectWithDraw) return;
   };
 
@@ -137,6 +154,15 @@ export default function Withdraw() {
           Trang sau
         </Button>
       </div>
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
