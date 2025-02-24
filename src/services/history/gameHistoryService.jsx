@@ -8,7 +8,7 @@ const getNumGuessHistory = async ({ queryKey }) => {
 
   const params = new URLSearchParams({ limit, page, order, userId });
   const res = await axiosClient.get(`/num-guess?${params.toString()}`);
-  console.log('res doan so', res);
+  // console.log('res doan so', res);
   return res;
 };
 
@@ -47,7 +47,7 @@ const getTaiLocHistory = async ({ queryKey }) => {
   const [_key, { limit, page, order = 'DESC', userId }] = queryKey;
   const params = new URLSearchParams({ limit, page, order, userId });
   const res = await axiosClient.get(`/sic-bo?${params.toString()}`);
-  console.log('res tai loc', res);
+  // console.log('res tai loc', res);
   return res;
 };
 

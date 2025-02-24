@@ -38,13 +38,6 @@ export default function Users() {
   const { depositManuallyMutation } = useDepositManually();
   const { widthdrawManuallyMutation } = useWidthdrawManually();
 
-  const filteredUsers = listUser.filter((user) =>
-    searchTerm
-      ? user?.fullName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-        user?.phone?.includes(searchTerm)
-      : true
-  );
-
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -88,7 +81,7 @@ export default function Users() {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    // setDesiredPage(1); // Reset to first page when searching
+    setDesiredPage(1); // Reset to first page when searching
   };
 
   const handleAddUser = () => {
@@ -279,6 +272,7 @@ export default function Users() {
   };
 
   const handleViewInOutHistory = (history) => {
+    console.log('history', history);
     setHistory(history);
     setIsHistoryInOutOpen(true);
   };
@@ -318,13 +312,14 @@ export default function Users() {
       </div>
 
       <>
-        {filteredUsers.length === 0 && searchTerm ? (
+        {listUser?.length === 0 && searchTerm ? (
           <p>Người dùng không tồn tại</p>
         ) : (
           <>
             <table className="w-full border-collapse border border-gray-300 mt-4">
               <thead>
                 <tr>
+                  <th className="border border-gray-300 p-2">ID</th>
                   <th className="border border-gray-300 p-2">Tên</th>
                   <th className="border border-gray-300 p-2">Điểm</th>
                   <th className="border border-gray-300 p-2">Số điện thoại</th>
@@ -332,8 +327,11 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers?.map((user) => (
+                {listUser?.map((user) => (
                   <tr key={user?.id}>
+                    <td className="border border-gray-300 p-2 text-center">
+                      {user?.id}
+                    </td>
                     <td className="border border-gray-300 p-2 text-center">
                       {user?.fullName}
                     </td>
@@ -458,7 +456,7 @@ export default function Users() {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleViewHistory(selectedUser.recentHistory)}
+                onClick={() => handleViewHistory(selectedUser.id)}
               >
                 Lịch sử game
               </Button>
@@ -466,9 +464,7 @@ export default function Users() {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() =>
-                  handleViewInOutHistory(selectedUser.recentHistory)
-                }
+                onClick={() => handleViewInOutHistory(selectedUser.id)}
               >
                 Lịch sử nạp / rút
               </Button>
@@ -500,13 +496,14 @@ export default function Users() {
       <RecentHistoryDialog
         open={isHistoryDialogOpen}
         onClose={handleCloseHistoryDialog}
-        history={history}
+        userId={history}
       />
 
+      {/* Lịch sử nạp rút */}
       <InOutHistory
         open={isHistoryInOutOpen}
         onClose={handleCloseInOutHistory}
-        history={history}
+        userId={history}
       />
 
       <Dialog open={isDeleteConfirmOpen} onClose={handleCloseDeleteConfirm}>

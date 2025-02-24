@@ -26,7 +26,7 @@ const InOutHistory = ({ open, onClose, userId }) => {
       limit: rowsPerPage,
       page: page + 1,
       order: 'DESC',
-      userId: 21,
+      userId,
     });
 
   const handleChangePage = (event, newPage) => {

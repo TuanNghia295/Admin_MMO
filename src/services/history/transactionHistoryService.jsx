@@ -6,7 +6,7 @@ const getTransactionList = async ({ queryKey }) => {
   const [_key, { limit, page, order = 'DESC', userId }] = queryKey;
   const params = new URLSearchParams({ limit, page, order, userId });
   const res = await axiosClient.get(`/transactions?${params.toString()}`);
-  console.log('res transactions', res);
+  // console.log('res transactions', res);
   return res;
 };
 

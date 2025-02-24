@@ -42,12 +42,6 @@ export default function Sale() {
     setDesiredPage(1); // Reset to first page when searching
   };
 
-  const filteredSales = sales.filter(
-    (sale) =>
-      sale?.fullName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      sale?.phone?.includes(searchTerm)
-  );
-
   const handleAddSale = () => {
     setIsEditMode(false);
     setNewSale({ fullName: '', phone: '', password: '' });
@@ -150,7 +144,7 @@ export default function Sale() {
               </tr>
             </thead>
             <tbody>
-              {filteredSales.map((sale) => (
+              {listSales?.map((sale) => (
                 <tr key={sale.id}>
                   <td className="border border-gray-300 p-2 text-center">
                     {sale.fullName}

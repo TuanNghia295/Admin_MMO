@@ -27,7 +27,7 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
     limit: rowsPerPage,
     page: page + 1,
     order: 'DESC',
-    userId: 21,
+    userId,
   });
 
   const {
@@ -38,7 +38,7 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
     limit: rowsPerPage,
     page: page + 1,
     order: 'DESC',
-    userId: 21,
+    userId,
   });
 
   const options = ['Đoán số', 'Tài Lộc'];
