@@ -1,1 +1,1 @@
-export const END_POINTS = 'https://be.godev.asia';
+export const END_POINTS = 'https://api.mbsfun88.com';

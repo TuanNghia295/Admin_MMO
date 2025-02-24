@@ -20,8 +20,9 @@ const fetchListUser = async ({ queryKey }) => {
 };
 
 // Tạo user mới
-const createUser = async ({ phone, password, code }) => {
+const createUser = async ({ fullName, phone, password, code }) => {
   const response = await axiosClient.post('/users', {
+    fullName,
     phone,
     password,
     code,
@@ -68,10 +69,7 @@ export const useUser = ({ limit, page, q, order }) => {
         console.log('Create user successfully');
       },
       onError: (error) => {
-        console.log(
-          'Create user failed:',
-          error.response?.data?.message || error.message
-        );
+        console.log('Create user failed:', error);
       },
     });
 

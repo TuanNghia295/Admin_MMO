@@ -153,7 +153,7 @@ export default function Users() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewUser((prevUser) => ({ ...prevUser, [name]: value.trim() }));
+    setNewUser((prevUser) => ({ ...prevUser, [name]: value }));
   };
 
   const getErrorMessage = (errorCode) => {
@@ -173,17 +173,14 @@ export default function Users() {
   };
 
   const handleCreateUser = (user) => {
-    console.log('user', user);
-
     createUserMutation(user, {
       onSuccess: (data) => {
         setUsers([...users, data]);
         setSuccessMessage('Thêm người dùng thành công');
       },
       onError: (error) => {
-        const errorMessage = getErrorMessage(error?.data?.errorCode);
+        const errorMessage = getErrorMessage(error?.response?.data?.errorCode);
         setError(errorMessage);
-        // console.error('Create user failed:', error);
       },
     });
   };
