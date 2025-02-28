@@ -24,10 +24,15 @@ export default function Config() {
 
   const handleSave = async () => {
     const profitPercentValue = parseFloat(profitPercent);
-    const sessionTimeValue = parseFloat(sessionTime);
+    const sessionTimeValue = parseInt(sessionTime);
 
     if (isNaN(profitPercentValue) || isNaN(sessionTimeValue)) {
       setError('Giá trị nhập vào không hợp lệ');
+      return;
+    }
+
+    if (profitPercentValue < 1) {
+      setError('Giá trị % lợi nhuận không được nhỏ hơn 1');
       return;
     }
 
