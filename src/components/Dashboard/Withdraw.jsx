@@ -82,7 +82,7 @@ export default function Withdraw() {
   }, [isLoadingListWithDraw, listWithDraws, desiredPage]);
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-white rounded-md shadow-md">
       <h1 className="text-2xl font-bold mb-4">Quản lý rút điểm</h1>
       <table className="w-full border-collapse border border-gray-300 mt-4">
         <thead>

@@ -3,7 +3,7 @@ import AddCardIcon from '@mui/icons-material/AddCard';
 import WalletIcon from '@mui/icons-material/Wallet';
 import SettingsIcon from '@mui/icons-material/Settings';
 import BadgeIcon from '@mui/icons-material/Badge';
-
+import ChatIcon from '@mui/icons-material/Chat';
 export const NAVIGATION_ADMIN = [
   {
     title: 'Quản lý người dùng',
@@ -30,6 +30,11 @@ export const NAVIGATION_ADMIN = [
     href: '/dashboard/config',
     icon: <SettingsIcon />,
   },
+  {
+    title: 'Trò chuyện',
+    href: '/dashboard/chat',
+    icon: <ChatIcon />,
+  },
 ];
 
 export const NAVIGATION_SALE = [
@@ -47,6 +52,11 @@ export const NAVIGATION_SALE = [
     title: 'Rút',
     href: '/dashboard/withdraw',
     icon: <WalletIcon />,
+  },
+  {
+    title: 'Trò chuyện',
+    href: '/dashboard/chat',
+    icon: <ChatIcon />,
   },
 ];
 

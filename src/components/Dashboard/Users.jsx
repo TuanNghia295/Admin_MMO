@@ -293,7 +293,7 @@ export default function Users() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-white rounded-md shadow-md">
       <h1 className="text-2xl font-bold mb-4">Quản lý người dùng</h1>
       <div className="mb-4 flex">
         <div className="flex-1 mr-5">

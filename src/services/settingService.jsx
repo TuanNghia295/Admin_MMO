@@ -5,6 +5,7 @@ import axiosClient from '../apis/AxiosClient';
 const fetchSettings = async () => {
   try {
     const response = await axiosClient.get(`/settings`);
+    console.log('response', response);
     return response || {};
   } catch (error) {
     console.error('Failed to fetch settings:', error);
@@ -44,6 +45,7 @@ export const useSetting = () => {
     mutationFn: fetchConfigGame,
     onSuccess: () => {
       // refresh lại dữ liệu
+      console.log('success');
       queryClient.invalidateQueries('defaultSetting');
     },
   });

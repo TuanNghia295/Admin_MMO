@@ -8,6 +8,7 @@ export default {
       colors: {
         primary: '#1976d2',
         grayf5: '#f5f5f5',
+        grayf4: '#f4f4f4',
         grayf8: '#f7f7f7',
       },
     },

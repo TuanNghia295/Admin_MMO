@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   TextField,
@@ -11,21 +11,30 @@ import {
 import { useSetting } from '../../services/settingService';
 
 export default function Config() {
-  // const [selectedGame, setSelectedGame] = useState('');
-
   const [profitPercent, setProfitPercent] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
+  const [error, setError] = useState(null);
   const {
     setting,
     defaultSetting,
-    isLoadingSetting,
     isDefaultLoading,
     configSuccess,
     configError,
   } = useSetting();
 
   const handleSave = async () => {
-    setting({ profitPercent, sessionTime });
+    const profitPercentValue = parseFloat(profitPercent);
+    const sessionTimeValue = parseFloat(sessionTime);
+
+    if (isNaN(profitPercentValue) || isNaN(sessionTimeValue)) {
+      setError('Giá trị nhập vào không hợp lệ');
+      return;
+    }
+
+    setting({
+      profitPercent: profitPercentValue,
+      sessionTime: sessionTimeValue,
+    });
   };
 
   useEffect(() => {
@@ -51,38 +60,20 @@ export default function Config() {
         <Typography variant="h5" component="h2" gutterBottom>
           Trò chơi
         </Typography>
-        {/* <FormControl fullWidth sx={{ mb: 4 }}>
-          <InputLabel id="game-select-label">Chọn loại trò chơi</InputLabel>
-          <Select
-            labelId="game-select-label"
-            id="game-select"
-            value={selectedGame}
-            label="Chọn loại trò chơi"
-            onChange={(e) => setSelectedGame(e.target.value)}
-          >
-            <MenuItem value="Game Đoán Số">Game Đoán Số</MenuItem>
-            <MenuItem value="Game Tài Lộc">Game Tài Lộc</MenuItem>
-          </Select>
-        </FormControl> */}
-        {/* 
-        {selectedGame && (
-        )} */}
-        <>
-          <TextField
-            label="Cấu hình % của ô cược"
-            variant="outlined"
-            fullWidth
-            type="number"
-            value={profitPercent}
-            onChange={(e) => setProfitPercent(e.target.value)}
-            sx={{ mb: 4 }}
-          />
-        </>
+        <TextField
+          label="Cấu hình % của ô cược"
+          variant="outlined"
+          fullWidth
+          type="text"
+          value={profitPercent}
+          onChange={(e) => setProfitPercent(e.target.value)}
+          sx={{ mb: 4 }}
+        />
         <TextField
           label="Cấu hình thời gian đếm ngược của phiên (giây)"
           variant="outlined"
           fullWidth
-          type="number"
+          type="text"
           value={sessionTime}
           onChange={(e) => setSessionTime(e.target.value)}
           sx={{ mb: 4 }}
@@ -106,6 +97,20 @@ export default function Config() {
       <Snackbar open={configError} autoHideDuration={6000} onClose={() => {}}>
         <Alert onClose={() => {}} severity="error" sx={{ width: '100%' }}>
           Cấu hình thất bại!
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert
+          onClose={() => setError(null)}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
+          {error}
         </Alert>
       </Snackbar>
     </Container>

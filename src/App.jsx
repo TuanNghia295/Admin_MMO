@@ -15,6 +15,8 @@ import {
   socketOn,
 } from './services/socketService';
 import { useQueryClient } from '@tanstack/react-query';
+import Chat from './components/Dashboard/Chat/Chat';
+import ChatDetails from './components/Dashboard/Chat/ChatDetails';
 
 function PrivateRoute({ children }) {
   const { user, isLoadingUser } = useAuth();
@@ -69,6 +71,9 @@ export default function App() {
           <Route path="sale" element={<Sale />} />
           <Route path="deposit" element={<Deposit />} />
           <Route path="withdraw" element={<Withdraw />} />
+          <Route path="chat" element={<Chat />}>
+            <Route path=":id" element={<ChatDetails />} />
+          </Route>
           <Route path="config" element={<Config />} />
         </Route>
       </Routes>
