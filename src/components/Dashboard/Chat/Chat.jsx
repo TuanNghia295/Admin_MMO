@@ -2,7 +2,9 @@ import { styled, alpha } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import AvatarClone from '../../../assets/images/avatartClone.jpg';
-import { Link, Outlet } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
+import { useConversations } from '../../../services/chatService';
+import { useState } from 'react';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -48,6 +50,16 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Chat() {
+  const [limit, useLimit] = useState(100000000);
+  const { listConversations, isLoadingConversations } = useConversations({
+    limit,
+    page: 1,
+    q: '',
+    order: 'DESC',
+  });
+  const location = useLocation(); // Sử dụng useLocation để lấy đường dẫn hiện tại
+  console.log('listConversations', listConversations);
+
   return (
     <div className="flex">
       {/* ListChat dashboard */}
@@ -65,24 +77,38 @@ export default function Chat() {
         </Search> */}
 
         {/* chat list of user */}
-        <Link to={'/dashboard/chat/1'}>
-          <li className="w-full flex justify-evenly p-3 mt-2 rounded-md  hover:bg-grayf5  active:bg-grayf8   cursor-pointer">
-            <article className="flex justify-start w-full">
-              <img
-                className="w-12 h-12 rounded-full"
-                src={AvatarClone}
-                alt="avatar"
-              />
-              &nbsp;
-              <div className="flex flex-col justify-start">
-                <h5>Nguyen Tuan Nghia</h5>
-                <p>Message</p>
-              </div>
-            </article>
-          </li>
-        </Link>
+        {Array.isArray(listConversations) &&
+          listConversations.map((conversation) => {
+            const { id, lastMessage, creator } = conversation;
+            const isActive = location.pathname === `/dashboard/chat/${id}`; // Kiểm tra nếu đường dẫn hiện tại là đường dẫn của cuộc trò chuyện
+            return (
+              <Link
+                to={`/dashboard/chat/${id}?fullName=${creator?.fullName}`}
+                key={id}
+              >
+                <li
+                  className={`w-full flex justify-evenly p-3 mt-2 rounded-md cursor-pointer ${
+                    isActive ? 'bg-blue-500 text-white' : 'hover:bg-grayf5'
+                  }`}
+                >
+                  <article className="flex justify-start w-full items-center">
+                    <img
+                      className="w-12 h-12 rounded-full"
+                      src={AvatarClone}
+                      alt="avatar"
+                    />
+                    &nbsp;&nbsp;
+                    <div className="flex flex-col justify-start overflow-hidden w-full  whitespace-nowrap overflow-x-hidden">
+                      <h5>{creator?.fullName}</h5>
+                      <p>{lastMessage?.text}</p>
+                    </div>
+                  </article>
+                </li>
+              </Link>
+            );
+          })}
       </ul>
-      <div className="flex-grow  bg-white   rounded-md shadow-lg">
+      <div className="flex-grow bg-white rounded-md shadow-lg">
         <Outlet /> {/* Hiển thị các tuyến đường con */}
       </div>
     </div>

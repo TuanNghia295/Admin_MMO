@@ -41,7 +41,8 @@ function PrivateRoute({ children }) {
     return () => {
       socketDisconnect();
     };
-  }, [accessToken]);
+  }, [accessToken, client]);
+
   if (isLoadingUser) {
     return <div>Loading...</div>;
   }
