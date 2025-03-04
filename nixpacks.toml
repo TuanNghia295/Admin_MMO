@@ -6,4 +6,4 @@ cmd = 'pnpm install'
 [phases.build]
 cmd = 'pnpm run build'
 [start]
-cmd = 'pnpm run start'
+cmd = 'pnpm run preview'
