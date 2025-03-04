@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import axiosClient from '../apis/AxiosClient';
 
 // lấy danh sách tin nhắn, lấy full hội thoại với id
@@ -15,7 +20,7 @@ const getConversations = async ({ queryKey }) => {
   if (q) params.append('q', q); // chỉ thêm q nếu có giá trị
 
   const response = await axiosClient.get(`/conversations?${params.toString()}`);
-  return response; // dữ liệu trả về có cấu trúc: { data: [...], pagination: { ... } }
+  return response.data; // dữ liệu trả về có cấu trúc: { data: [...], pagination: { ... } }
 };
 
 // Lấy chi tiết cuộc trò chuyện thông qua conversationId
@@ -44,6 +49,7 @@ const sendMessage = async ({ conversationId, text }) => {
   return response.data;
 };
 
+// Hook sử dụng để lấy danh sách cuộc trò chuyện
 export const useConversations = ({ limit, page, q, order }) => {
   const queryClient = useQueryClient();
   const { data, isLoading: isLoadingConversations } = useQuery({
@@ -56,9 +62,10 @@ export const useConversations = ({ limit, page, q, order }) => {
   const pagination = data?.pagination || {};
   const totalPages = pagination?.totalPages || 0;
 
-  return { listConversations, totalPages, isLoadingConversations };
+  return { listConversations, totalPages, isLoadingConversations, pagination };
 };
 
+// Hook sử dụng để lấy chi tiết cuộc trò chuyện
 export const useConversationDetail = ({
   limit,
   page,
@@ -105,3 +112,6 @@ export const useConversationDetail = ({
     messageError,
   };
 };
+
+// Export getConversations để sử dụng trong Chat.jsx
+export { getConversations };

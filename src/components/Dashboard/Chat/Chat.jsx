@@ -3,8 +3,14 @@ import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import AvatarClone from '../../../assets/images/avatartClone.jpg';
 import { Link, Outlet, useLocation } from 'react-router';
-import { useConversations } from '../../../services/chatService';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  socketOn,
+  socketConnect,
+  socketDisconnect,
+} from '../../../services/socketService';
+import { getConversations } from '../../../services/chatService';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -50,15 +56,50 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Chat() {
-  const [limit, useLimit] = useState(100000000);
-  const { listConversations, isLoadingConversations } = useConversations({
-    limit,
-    page: 1,
-    q: '',
-    order: 'DESC',
-  });
+  const [limit, setLimit] = useState(100000000);
+  const [page, setPage] = useState(1);
   const location = useLocation(); // Sử dụng useLocation để lấy đường dẫn hiện tại
-  console.log('listConversations', listConversations);
+  const client = useQueryClient();
+  const accessToken = localStorage.getItem('token');
+  const [highlightedConversationId, setHighlightedConversationId] =
+    useState(null);
+
+  // Tạo infiniteScroll
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ['conversations', { limit, page, q: '', order: 'DESC' }],
+    queryFn: getConversations,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
+  });
+
+  useEffect(() => {
+    socketConnect(accessToken);
+
+    socketOn('message.created', (data) => {
+      console.log('Message:', data);
+      client.invalidateQueries({
+        queryKey: ['conversations'],
+      });
+      client.invalidateQueries({
+        queryKey: ['conversationDetail'],
+      });
+      setHighlightedConversationId(data.conversationId);
+    });
+
+    return () => {
+      socketDisconnect();
+    };
+  }, [accessToken, client]);
+
+  console.log('data', data);
 
   return (
     <div className="flex">
@@ -77,10 +118,11 @@ export default function Chat() {
         </Search> */}
 
         {/* chat list of user */}
-        {Array.isArray(listConversations) &&
-          listConversations.map((conversation) => {
+        {data?.pages?.map((page) =>
+          page.map((conversation) => {
             const { id, lastMessage, creator } = conversation;
             const isActive = location.pathname === `/dashboard/chat/${id}`; // Kiểm tra nếu đường dẫn hiện tại là đường dẫn của cuộc trò chuyện
+            const isHighlighted = highlightedConversationId === id; // Kiểm tra nếu cuộc trò chuyện được đánh dấu
             return (
               <Link
                 to={`/dashboard/chat/${id}?fullName=${creator?.fullName}`}
@@ -100,13 +142,16 @@ export default function Chat() {
                     &nbsp;&nbsp;
                     <div className="flex flex-col justify-start overflow-hidden w-full  whitespace-nowrap overflow-x-hidden">
                       <h5>{creator?.fullName}</h5>
-                      <p>{lastMessage?.text}</p>
+                      <p className={isHighlighted ? 'font-bold' : ''}>
+                        {lastMessage?.text}
+                      </p>
                     </div>
                   </article>
                 </li>
               </Link>
             );
-          })}
+          })
+        )}
       </ul>
       <div className="flex-grow bg-white rounded-md shadow-lg">
         <Outlet /> {/* Hiển thị các tuyến đường con */}
