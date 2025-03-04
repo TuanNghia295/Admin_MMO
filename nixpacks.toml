@@ -1,9 +1,9 @@
 
 [phases.setup]
-nixPkgs = ['nodejs_20', 'npm']
+nixPkgs = ['nodejs_20', 'pnpm']
 [phases.install]
-cmd = 'npm install'
+cmd = 'pnpm install'
 [phases.build]
-cmd = 'npm run build'
+cmd = 'pnpm run build'
 [start]
-cmd = 'npm run preview'
+cmd = 'pnpm run start'
