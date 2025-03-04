@@ -114,4 +114,4 @@ export const useConversationDetail = ({
 };
 
 // Export getConversations để sử dụng trong Chat.jsx
-export { getConversations };
+export { getConversations, getConversationDetail };

@@ -61,8 +61,6 @@ export default function Chat() {
   const location = useLocation(); // Sử dụng useLocation để lấy đường dẫn hiện tại
   const client = useQueryClient();
   const accessToken = localStorage.getItem('token');
-  const [highlightedConversationId, setHighlightedConversationId] =
-    useState(null);
 
   // Tạo infiniteScroll
   const {
@@ -91,7 +89,6 @@ export default function Chat() {
       client.invalidateQueries({
         queryKey: ['conversationDetail'],
       });
-      setHighlightedConversationId(data.conversationId);
     });
 
     return () => {
@@ -122,7 +119,6 @@ export default function Chat() {
           page.map((conversation) => {
             const { id, lastMessage, creator } = conversation;
             const isActive = location.pathname === `/dashboard/chat/${id}`; // Kiểm tra nếu đường dẫn hiện tại là đường dẫn của cuộc trò chuyện
-            const isHighlighted = highlightedConversationId === id; // Kiểm tra nếu cuộc trò chuyện được đánh dấu
             return (
               <Link
                 to={`/dashboard/chat/${id}?fullName=${creator?.fullName}`}
@@ -142,9 +138,7 @@ export default function Chat() {
                     &nbsp;&nbsp;
                     <div className="flex flex-col justify-start overflow-hidden w-full  whitespace-nowrap overflow-x-hidden">
                       <h5>{creator?.fullName}</h5>
-                      <p className={isHighlighted ? 'font-bold' : ''}>
-                        {lastMessage?.text}
-                      </p>
+                      <p>{lastMessage?.text}</p>
                     </div>
                   </article>
                 </li>
