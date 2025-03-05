@@ -38,7 +38,6 @@ const deleteUser = async (id) => {
 
 // Sửa mật khẩu cho user
 const changePassword = async ({ userId, password }) => {
-  console.log('Change password:', userId, password);
   const response = await axiosClient.put(`/users`, {
     userId,
     password,

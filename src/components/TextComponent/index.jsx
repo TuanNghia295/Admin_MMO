@@ -1,4 +1,5 @@
 import React from 'react';
+import { END_POINTS } from '../../constant/endpoints';
 
 /**
  * @typedef {object} TextComponentProps
@@ -6,8 +7,9 @@ import React from 'react';
  * @property {string} sender - Người gửi tin nhắn
  * @property {string} time - Thời gian gửi tin nhắn
  * @property {string} role - Vai trò của người gửi tin nhắn (MANAGER, SALE, USER, ADMIN, ...)
+ * @property {string} [image] - URL của hình ảnh (nếu có)
  */
-export default function TextComponent({ text, sender, time, role }) {
+export default function TextComponent({ text, sender, time, role, image }) {
   const isMyMessage = role === 'MANAGER' || role === 'SALE';
 
   return (
@@ -31,7 +33,16 @@ export default function TextComponent({ text, sender, time, role }) {
             {time}
           </span>
         </div>
-        <p className="text-sm font-normal py-2.5">{text}</p>
+        {image && (
+          <img
+            src={`${END_POINTS}/${image}`}
+            alt={`${image}`}
+            className="my-2 max-w-full h-auto rounded"
+          />
+        )}
+        <p className="text-sm font-normal py-2.5">
+          {text === 'undefined' ? '' : text || ''}
+        </p>
       </div>
     </div>
   );

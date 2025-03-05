@@ -11,8 +11,9 @@ import {
 import { useSetting } from '../../services/settingService';
 
 export default function Config() {
-  const [profitPercent, setProfitPercent] = useState(0);
-  const [sessionTime, setSessionTime] = useState(0);
+  const [profitPercentLocPhat, setProfitPercentLocPhat] = useState(0);
+  const [profitPercentTaiXiu, setProfitPercentTaiXiu] = useState(0);
+  const [sessionTime, setSessionTime] = useState(299); // Đặt mặc định là 299 giây
   const [error, setError] = useState(null);
   const {
     setting,
@@ -23,36 +24,39 @@ export default function Config() {
   } = useSetting();
 
   const handleSave = async () => {
-    const profitPercentValue = parseFloat(profitPercent);
-    const sessionTimeValue = parseInt(sessionTime);
+    const profitPercentLocPhatValue = parseFloat(profitPercentLocPhat);
+    const profitPercentTaiXiuValue = parseFloat(profitPercentTaiXiu);
 
-    if (isNaN(profitPercentValue) || isNaN(sessionTimeValue)) {
+    if (isNaN(profitPercentLocPhatValue) || isNaN(profitPercentTaiXiuValue)) {
       setError('Giá trị nhập vào không hợp lệ');
       return;
     }
 
-    if (profitPercentValue < 1) {
+    if (profitPercentLocPhatValue < 1 || profitPercentTaiXiuValue < 1) {
       setError('Giá trị % lợi nhuận không được nhỏ hơn 1');
       return;
     }
 
     setting({
-      profitPercent: profitPercentValue,
-      sessionTime: sessionTimeValue,
+      profitPercentLocPhat: profitPercentLocPhatValue,
+      profitPercentTaiXiu: profitPercentTaiXiuValue,
+      sessionTime: sessionTime, // Sử dụng giá trị mặc định
     });
   };
 
   useEffect(() => {
     if (!isDefaultLoading) {
-      setProfitPercent(defaultSetting.profitPercent);
-      setSessionTime(defaultSetting.sessionTime);
+      setProfitPercentLocPhat(defaultSetting.profitPercentLocPhat);
+      setProfitPercentTaiXiu(defaultSetting.profitPercentTaiXiu);
+      setSessionTime(299); // Đặt mặc định là 299 giây
     }
   }, [isDefaultLoading]);
 
   useEffect(() => {
     if (configSuccess) {
-      setProfitPercent(profitPercent);
-      setSessionTime(sessionTime);
+      setProfitPercentLocPhat(profitPercentLocPhat);
+      setProfitPercentTaiXiu(profitPercentTaiXiu);
+      setSessionTime(299); // Đặt mặc định là 299 giây
     }
   }, [configSuccess]);
 
@@ -66,21 +70,21 @@ export default function Config() {
           Trò chơi
         </Typography>
         <TextField
-          label="Cấu hình % của ô cược"
+          label="Cấu hình % của ô cược Lộc phát 5D"
           variant="outlined"
           fullWidth
           type="text"
-          value={profitPercent}
-          onChange={(e) => setProfitPercent(e.target.value)}
+          value={profitPercentLocPhat}
+          onChange={(e) => setProfitPercentLocPhat(e.target.value)}
           sx={{ mb: 4 }}
         />
         <TextField
-          label="Cấu hình thời gian đếm ngược của phiên (giây)"
+          label="Cấu hình % của ô cược Tài xỉu"
           variant="outlined"
           fullWidth
           type="text"
-          value={sessionTime}
-          onChange={(e) => setSessionTime(e.target.value)}
+          value={profitPercentTaiXiu}
+          onChange={(e) => setProfitPercentTaiXiu(e.target.value)}
           sx={{ mb: 4 }}
         />
         <Button

@@ -3,7 +3,7 @@ import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import AvatarClone from '../../../assets/images/avatartClone.jpg';
 import { Link, Outlet, useLocation } from 'react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import {
   socketOn,
@@ -56,11 +56,11 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Chat() {
-  const [limit, setLimit] = useState(100000000);
-  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(1);
   const location = useLocation(); // Sử dụng useLocation để lấy đường dẫn hiện tại
   const client = useQueryClient();
   const accessToken = localStorage.getItem('token');
+  const listRef = useRef(null);
 
   // Tạo infiniteScroll
   const {
@@ -72,10 +72,9 @@ export default function Chat() {
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
-    queryKey: ['conversations', { limit, page, q: '', order: 'DESC' }],
+    queryKey: ['conversations', { limit, q: '', order: 'DESC' }],
     queryFn: getConversations,
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
   useEffect(() => {
@@ -96,12 +95,56 @@ export default function Chat() {
     };
   }, [accessToken, client]);
 
-  console.log('data', data);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (listRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+        if (
+          scrollTop + clientHeight >= scrollHeight - 5 &&
+          hasNextPage &&
+          !isFetchingNextPage
+        ) {
+          fetchNextPage();
+        }
+      }
+    };
+
+    const listElement = listRef.current;
+    if (listElement) {
+      listElement.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (listElement) {
+        listElement.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    const checkHeight = () => {
+      if (listRef.current) {
+        const { scrollHeight, clientHeight } = listRef.current;
+        if (
+          scrollHeight <= clientHeight &&
+          hasNextPage &&
+          !isFetchingNextPage
+        ) {
+          fetchNextPage();
+        }
+      }
+    };
+
+    checkHeight();
+  }, [data, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <div className="flex">
       {/* ListChat dashboard */}
-      <ul className="list-none w-[28%] text-black bg-white shadow-md mr-3 rounded-lg p-4 h-[96vh] overflow-y-auto">
+      <ul
+        ref={listRef}
+        className="list-none w-[28%] text-black bg-white shadow-md mr-3 rounded-lg p-4 h-[96vh] overflow-y-auto"
+      >
         <h1 className=" font-[500] text-2xl">Đoạn chat</h1>
         {/* search */}
         {/* <Search>
@@ -115,14 +158,14 @@ export default function Chat() {
         </Search> */}
 
         {/* chat list of user */}
-        {data?.pages?.map((page) =>
-          page.map((conversation) => {
+        {data?.pages?.map((page, pageIndex) =>
+          page.data.map((conversation) => {
             const { id, lastMessage, creator } = conversation;
             const isActive = location.pathname === `/dashboard/chat/${id}`; // Kiểm tra nếu đường dẫn hiện tại là đường dẫn của cuộc trò chuyện
             return (
               <Link
                 to={`/dashboard/chat/${id}?fullName=${creator?.fullName}`}
-                key={id}
+                key={`${id}-${pageIndex}`}
               >
                 <li
                   className={`w-full flex justify-evenly p-3 mt-2 rounded-md cursor-pointer ${
@@ -145,6 +188,11 @@ export default function Chat() {
               </Link>
             );
           })
+        )}
+        {isFetchingNextPage && (
+          <li className="w-full flex justify-center p-3 mt-2">
+            <span>Loading more...</span>
+          </li>
         )}
       </ul>
       <div className="flex-grow bg-white rounded-md shadow-lg">
