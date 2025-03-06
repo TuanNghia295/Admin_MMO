@@ -1,51 +1,64 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '../apis/AxiosClient';
 
 // lấy danh sách tin nhắn, lấy full hội thoại với id
-const getConversations = async ({ queryKey }) => {
-  const [_key, { limit, page, q, order = 'DESC' }] = queryKey;
+const getConversations = async ({ queryKey, pageParam = 1 }) => {
+  const [_key, { limit, q, order = 'DESC' }] = queryKey;
 
   // tạo query params linh hoạt
   const params = new URLSearchParams({
     limit,
-    page,
+    page: pageParam,
     order,
   });
 
   if (q) params.append('q', q); // chỉ thêm q nếu có giá trị
 
   const response = await axiosClient.get(`/conversations?${params.toString()}`);
-  return response.data; // dữ liệu trả về có cấu trúc: { data: [...], pagination: { ... } }
+  // console.log('response', response);
+
+  return {
+    data: response.data,
+    nextCursor:
+      response.pagination.currentPage < response.pagination.totalPages
+        ? response.pagination.currentPage + 1
+        : undefined,
+  };
 };
 
 // Lấy chi tiết cuộc trò chuyện thông qua conversationId
-const getConversationDetail = async ({ queryKey }) => {
-  const [_key, { limit, page, q, order = 'DESC', conversationId }] = queryKey;
+const getConversationDetail = async ({ queryKey, pageParam = 1 }) => {
+  const [_key, { limit, q, order = 'DESC', conversationId }] = queryKey;
 
   // tạo query params linh hoạt
   const params = new URLSearchParams({
     limit,
-    page,
+    page: pageParam,
     order,
     conversationId, // thêm conversationId vào params
   });
 
   if (q) params.append('q', q); // chỉ thêm q nếu có giá trị
   const response = await axiosClient.get(`/messages?${params.toString()}`);
-  return response.data;
+
+  return {
+    data: response.data,
+    nextCursor:
+      response.pagination.currentPage < response.pagination.totalPages
+        ? response.pagination.currentPage + 1
+        : undefined,
+  };
 };
 
 // Gửi tin nhắn tới người dùng qua conversationId
-const sendMessage = async ({ conversationId, text }) => {
-  const response = await axiosClient.post(`/messages`, {
-    conversationId,
-    text,
-  });
+const sendMessage = async ({ conversationId, text, file }) => {
+  const formData = new FormData();
+  formData.append('conversationId', conversationId);
+  formData.append('text', text);
+  if (file) {
+    formData.append('file', file);
+  }
+  const response = await axiosClient.post(`/messages`, formData);
   return response.data;
 };
 
@@ -89,6 +102,7 @@ export const useConversationDetail = ({
     mutate: sendMessageMutation,
     isLoading: isSendingMessage,
     isError: messageError,
+    isSuccess: messageSuccess,
   } = useMutation({
     mutationKey: 'sendMessage',
     mutationFn: sendMessage,
@@ -110,6 +124,7 @@ export const useConversationDetail = ({
     sendMessageMutation,
     isSendingMessage,
     messageError,
+    messageSuccess,
   };
 };
 

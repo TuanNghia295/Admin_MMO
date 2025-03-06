@@ -20,9 +20,10 @@ const fetchListUser = async ({ queryKey }) => {
 };
 
 // Tạo user mới
-const createUser = async ({ fullName, phone, password, code }) => {
+const createUser = async ({ fullName, username, phone, password, code }) => {
   const response = await axiosClient.post('/users', {
     fullName,
+    username,
     phone,
     password,
     code,
@@ -38,12 +39,17 @@ const deleteUser = async (id) => {
 
 // Sửa mật khẩu cho user
 const changePassword = async ({ userId, password }) => {
-  console.log('Change password:', userId, password);
   const response = await axiosClient.put(`/users`, {
     userId,
     password,
   });
   return response.data;
+};
+
+// Khóa/Mở khóa user
+const lockUser = async (userId) => {
+  const res = await axiosClient.put(`/users/lock?userId=${userId}`);
+  return res.data;
 };
 
 export const useUser = ({ limit, page, q, order }) => {
@@ -107,6 +113,23 @@ export const useUser = ({ limit, page, q, order }) => {
       },
     });
 
+  const {
+    mutate: lockUserMutation,
+    isPending: isLoadingLockUser,
+    isError: isLockUserError,
+  } = useMutation({
+    mutationKey: 'lockUser',
+    mutationFn: lockUser,
+    onSettled: () => {
+      queryClient.invalidateQueries('listUser');
+    },
+    onSuccess: () => {
+      console.log('Lock user successfully');
+    },
+    onError: (error) => {
+      console.log('Lock user failed:', error);
+    },
+  });
   return {
     listUser,
     pagination,
@@ -118,5 +141,8 @@ export const useUser = ({ limit, page, q, order }) => {
     isLoadingDeleteUser,
     changePasswordMutation,
     isLoadingChangePassword,
+    lockUserMutation,
+    isLoadingLockUser,
+    isLockUserError,
   };
 };

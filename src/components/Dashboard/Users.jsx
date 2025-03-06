@@ -8,6 +8,9 @@ import {
   DialogTitle,
   Snackbar,
   Alert,
+  Grid2,
+  Box,
+  Typography,
 } from '@mui/material';
 import RecentHistoryDialog from '../RecentHistoryDialog';
 import { useUser } from '../../services/userService';
@@ -16,6 +19,9 @@ import InOutHistory from '../InOutHistory';
 import InOutDialogComponent from '../InOutDialogComponent';
 import { useDepositManually } from '../../services/depositService';
 import { useWidthdrawManually } from '../../services/withdrawService';
+import SnackBarComponent from '../SnackBar';
+import BankEditCompoent from '../BankComponent';
+import { useBank } from '../../services/bankService';
 
 export default function Users() {
   const [page, setPage] = useState(1);
@@ -28,6 +34,7 @@ export default function Users() {
     createUserMutation,
     deleteUserMutation,
     changePasswordMutation,
+    lockUserMutation,
   } = useUser({
     limit: 8,
     page: desiredPage,
@@ -44,6 +51,7 @@ export default function Users() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: '',
+    username: '',
     wallet: { money: '' },
     phone: '',
     password: '',
@@ -64,7 +72,7 @@ export default function Users() {
   const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
   const [newDeposit, setNewDeposit] = useState('');
   const [newWithdraw, setNewWithdraw] = useState('');
-
+  const [isBankAccountDialogOpen, setIsBankAccountDialogOpen] = useState(false);
   const formatNumber = (value) => {
     if (typeof value !== 'string' && typeof value !== 'number') {
       return '';
@@ -88,6 +96,7 @@ export default function Users() {
     setIsEditMode(false);
     setNewUser({
       fullName: '',
+      username: '',
       wallet: { money: '' },
       phone: '',
       password: '',
@@ -153,7 +162,12 @@ export default function Users() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewUser((prevUser) => ({ ...prevUser, [name]: value }));
+    console.log('name', name);
+    console.log('value', value);
+    setNewUser((prevUser) => ({
+      ...prevUser,
+      [name]: value,
+    }));
   };
 
   const getErrorMessage = (errorCode) => {
@@ -292,6 +306,25 @@ export default function Users() {
     setDesiredPage((prevPage) => Math.max(prevPage - 1, 1));
   };
 
+  const handleOpenBankAccountDialog = (user) => {
+    // console.log('user', user);
+    setSelectedUser(user);
+    setIsBankAccountDialogOpen(true);
+  };
+
+  const handleLockUser = (user) => {
+    console.log('user', user);
+    lockUserMutation(user.id, {
+      onSuccess: () => {
+        setSuccessMessage('Khóa/Mở khóa người dùng thành công');
+      },
+      onError: (error) => {
+        setError('Khóa/Mở khóa người dùng thất bại');
+        console.error('Lock user failed:', error);
+      },
+    });
+  };
+
   return (
     <div className="p-4 bg-white rounded-md shadow-md">
       <h1 className="text-2xl font-bold mb-4">Quản lý người dùng</h1>
@@ -357,6 +390,13 @@ export default function Users() {
                       </Button> */}
                       <Button
                         variant="text"
+                        color="warning"
+                        onClick={() => handleLockUser(user)}
+                      >
+                        {user?.isLocked ? 'Mở khóa' : 'Khóa'}
+                      </Button>
+                      <Button
+                        variant="text"
                         color="error"
                         onClick={() => handleOpenDeleteConfirm(user)}
                       >
@@ -407,6 +447,18 @@ export default function Users() {
             onChange={handleInputChange}
           />
           <TextField
+            label="Tên đăng nhập"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            name="username"
+            value={newUser.username
+              .trim()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')}
+            onChange={handleInputChange}
+          />
+          <TextField
             label="Số điện thoại"
             variant="outlined"
             fullWidth
@@ -447,53 +499,96 @@ export default function Users() {
       </Dialog>
 
       {selectedUser && (
-        <Dialog open={Boolean(selectedUser)} onClose={handleCloseDetails}>
-          <DialogTitle>Chi tiết người dùng</DialogTitle>
-          <DialogContent
-            style={{
-              minWidth: '500px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            <p>Tên: {selectedUser.fullName}</p>
-            <p>Điểm: {formatNumber(selectedUser.wallet.money)}</p>
-            <p>Số điện thoại: {selectedUser.phone}</p>
-            <div className="flex justify-around">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleViewHistory(selectedUser.id)}
-              >
-                Lịch sử game
-              </Button>
+        <Dialog
+          open={Boolean(selectedUser)}
+          onClose={handleCloseDetails}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+            Chi tiết người dùng
+          </DialogTitle>
 
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleViewInOutHistory(selectedUser.id)}
-              >
-                Lịch sử nạp / rút
-              </Button>
-            </div>
+          <DialogContent sx={{ p: 3 }}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1">
+                <strong>Tên:</strong> {selectedUser.fullName}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Điểm:</strong> {selectedUser.wallet?.money || 0}
+              </Typography>
+              <Typography variant="body1">
+                <strong>Số điện thoại:</strong> {selectedUser.phone}
+              </Typography>
+            </Box>
+
+            <Grid2 container spacing={2} justifyContent="start">
+              <Grid2>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => handleViewHistory(selectedUser.id)}
+                >
+                  Lịch sử game
+                </Button>
+              </Grid2>
+              <Grid2>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => handleViewInOutHistory(selectedUser.id)}
+                >
+                  Lịch sử nạp / rút
+                </Button>
+              </Grid2>
+
+              <Grid2>
+                <Button
+                  variant="outlined"
+                  color="success"
+                  fullWidth
+                  onClick={() => handleOpenDepositDialog(selectedUser)}
+                >
+                  Nạp
+                </Button>
+              </Grid2>
+              <Grid2>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  fullWidth
+                  onClick={() => handleOpenWidthdrawDialog(selectedUser)}
+                >
+                  Rút
+                </Button>
+              </Grid2>
+            </Grid2>
           </DialogContent>
+
+          <DialogContent sx={{ px: 3, pb: 2 }}>
+            <Grid2 container spacing={2}>
+              <Grid2>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleChangePassword}
+                >
+                  Đổi mật khẩu
+                </Button>
+              </Grid2>
+              <Grid2>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => handleOpenBankAccountDialog(selectedUser)}
+                >
+                  Thay đổi tài khoản ngân hàng
+                </Button>
+              </Grid2>
+            </Grid2>
+          </DialogContent>
+
           <DialogActions>
-            <Button
-              onClick={() => handleOpenDepositDialog(selectedUser)}
-              color="primary"
-            >
-              Nạp
-            </Button>
-            <Button
-              color="primary"
-              onClick={() => handleOpenWidthdrawDialog(selectedUser)}
-            >
-              Rút
-            </Button>
-            <Button onClick={handleChangePassword} color="primary">
-              Đổi mật khẩu
-            </Button>
             <Button onClick={handleCloseDetails} color="primary">
               Đóng
             </Button>
@@ -558,6 +653,12 @@ export default function Users() {
         </DialogActions>
       </Dialog>
 
+      <BankEditCompoent
+        userId={selectedUser?.id}
+        isBankAccountDialogOpen={isBankAccountDialogOpen}
+        setIsBankAccountDialogOpen={setIsBankAccountDialogOpen}
+      />
+
       <InOutDialogComponent
         open={isDepositDialogOpen}
         onClose={() => setIsDepositDialogOpen(false)}
@@ -567,6 +668,7 @@ export default function Users() {
         onSave={handleDeposit}
       />
 
+      {/* Modal nạp điểm */}
       <InOutDialogComponent
         open={isWithdrawDialogOpen}
         onClose={() => setIsWithdrawDialogOpen(false)}
@@ -576,33 +678,13 @@ export default function Users() {
         onSave={handleWithdraw}
       />
 
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-      >
-        <Alert
-          onClose={() => setError(null)}
-          severity="error"
-          sx={{ width: '100%' }}
-        >
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={6000}
-        onClose={() => setSuccessMessage(null)}
-      >
-        <Alert
-          onClose={() => setSuccessMessage(null)}
-          severity="success"
-          sx={{ width: '100%' }}
-        >
-          {successMessage}
-        </Alert>
-      </Snackbar>
+      {/* Thông báo đổi mật khẩu thành công hoặc thất bại */}
+      <SnackBarComponent
+        successMessage={successMessage}
+        setSuccessMessage={setSuccessMessage}
+        errorMessage={error}
+        setErrorMessage={setError}
+      />
     </div>
   );
 }
