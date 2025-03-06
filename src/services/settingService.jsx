@@ -2,9 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '../apis/AxiosClient';
 
 // Lấy thông tin settings
-const fetchSettings = async () => {
+const fetchSettings = async ({ queryKey }) => {
+  const [_, type] = queryKey;
   try {
-    const response = await axiosClient.get(`/settings`);
+    const response = await axiosClient.get(`/settings?type=${type}`);
     console.log('response', response);
     return response || {};
   } catch (error) {
@@ -14,11 +15,12 @@ const fetchSettings = async () => {
 };
 
 // Cài đặt tính năng cấu hình trò chơi
-const fetchConfigGame = async ({ profitPercent, sessionTime }) => {
+const fetchConfigGame = async ({ profitPercent, sessionTime, type }) => {
   try {
     const response = await axiosClient.put(`/settings`, {
       profitPercent,
       sessionTime,
+      type,
     });
     return response.data;
   } catch (error) {
@@ -27,10 +29,10 @@ const fetchConfigGame = async ({ profitPercent, sessionTime }) => {
   }
 };
 
-export const useSetting = () => {
+export const useSetting = (type) => {
   const queryClient = useQueryClient();
   const { data: defaultSetting, isLoading: isDefaultLoading } = useQuery({
-    queryKey: ['defaultSetting'],
+    queryKey: ['defaultSetting', type],
     queryFn: fetchSettings,
     enabled: !!localStorage.getItem('token'),
   });
@@ -41,12 +43,12 @@ export const useSetting = () => {
     isSuccess: configSuccess,
     isError: configError,
   } = useMutation({
-    mutationKey: ['defaultSetting'],
-    mutationFn: fetchConfigGame,
+    mutationKey: ['defaultSetting', type],
+    mutationFn: (data) => fetchConfigGame({ ...data, type }),
     onSuccess: () => {
       // refresh lại dữ liệu
       console.log('success');
-      queryClient.invalidateQueries('defaultSetting');
+      queryClient.invalidateQueries(['defaultSetting', type]);
     },
   });
 
