@@ -21,6 +21,7 @@ import { useDepositManually } from '../../services/depositService';
 import { useWidthdrawManually } from '../../services/withdrawService';
 import SnackBarComponent from '../SnackBar';
 import BankEditCompoent from '../BankComponent';
+import { useBank } from '../../services/bankService';
 
 export default function Users() {
   const [page, setPage] = useState(1);
@@ -34,7 +35,6 @@ export default function Users() {
     deleteUserMutation,
     changePasswordMutation,
     lockUserMutation,
-    isLoadingLockUser,
   } = useUser({
     limit: 8,
     page: desiredPage,
@@ -73,11 +73,6 @@ export default function Users() {
   const [newDeposit, setNewDeposit] = useState('');
   const [newWithdraw, setNewWithdraw] = useState('');
   const [isBankAccountDialogOpen, setIsBankAccountDialogOpen] = useState(false);
-  const [bankAccount, setBankAccount] = useState({
-    accountNumber: '',
-    bankName: '',
-    accoutName: '',
-  });
   const formatNumber = (value) => {
     if (typeof value !== 'string' && typeof value !== 'number') {
       return '';
@@ -312,32 +307,9 @@ export default function Users() {
   };
 
   const handleOpenBankAccountDialog = (user) => {
-    console.log('user', user);
+    // console.log('user', user);
     setSelectedUser(user);
-    setBankAccount({
-      accountNumber: user.bankAccount?.accountNumber || '',
-      bankName: user.bankAccount?.bankName || '',
-      accoutName: user.bankAccount?.accoutName || '',
-    });
     setIsBankAccountDialogOpen(true);
-  };
-
-  const handleSaveBankAccount = () => {
-    // updateBankAccountMutation(
-    //   { userId: selectedUser.id, bankAccount },
-    //   {
-    //     onSuccess: () => {
-    //       setSuccessMessage(
-    //         'Thay đổi thông tin tài khoản ngân hàng thành công'
-    //       );
-    //       setIsBankAccountDialogOpen(false);
-    //     },
-    //     onError: (error) => {
-    //       setError('Thay đổi thông tin tài khoản ngân hàng thất bại');
-    //       console.error('Update bank account failed:', error);
-    //     },
-    //   }
-    // );
   };
 
   const handleLockUser = (user) => {
@@ -551,7 +523,7 @@ export default function Users() {
             </Box>
 
             <Grid2 container spacing={2} justifyContent="start">
-              <Grid2 item xs={6}>
+              <Grid2>
                 <Button
                   variant="contained"
                   fullWidth
@@ -560,7 +532,7 @@ export default function Users() {
                   Lịch sử game
                 </Button>
               </Grid2>
-              <Grid2 item xs={6}>
+              <Grid2>
                 <Button
                   variant="contained"
                   fullWidth
@@ -570,7 +542,7 @@ export default function Users() {
                 </Button>
               </Grid2>
 
-              <Grid2 item xs={6}>
+              <Grid2>
                 <Button
                   variant="outlined"
                   color="success"
@@ -580,7 +552,7 @@ export default function Users() {
                   Nạp
                 </Button>
               </Grid2>
-              <Grid2 item xs={6}>
+              <Grid2>
                 <Button
                   variant="outlined"
                   color="error"
@@ -595,7 +567,7 @@ export default function Users() {
 
           <DialogContent sx={{ px: 3, pb: 2 }}>
             <Grid2 container spacing={2}>
-              <Grid2 item xs={6}>
+              <Grid2>
                 <Button
                   variant="contained"
                   fullWidth
@@ -604,7 +576,7 @@ export default function Users() {
                   Đổi mật khẩu
                 </Button>
               </Grid2>
-              <Grid2 item xs={6}>
+              <Grid2>
                 <Button
                   variant="contained"
                   fullWidth
@@ -682,8 +654,8 @@ export default function Users() {
       </Dialog>
 
       <BankEditCompoent
+        userId={selectedUser?.id}
         isBankAccountDialogOpen={isBankAccountDialogOpen}
-        handleSaveBankAccount={handleSaveBankAccount}
         setIsBankAccountDialogOpen={setIsBankAccountDialogOpen}
       />
 

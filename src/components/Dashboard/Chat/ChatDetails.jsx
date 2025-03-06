@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useParams } from 'react-router';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   Button,
-  TextField,
+  TextareaAutosize,
   IconButton,
   Avatar,
   styled,
@@ -74,11 +74,6 @@ export default function ChatDetails() {
     if ((newMessage.trim() !== '' || uploadedFile) && !isUploading) {
       sendMessageMutation({
         conversationId: Number(id),
-        file: uploadedFile,
-      });
-    } else if ((newMessage.trim() !== '' && !isUploading) || uploadedFile) {
-      sendMessageMutation({
-        conversationId: Number(id),
         text: newMessage,
         file: uploadedFile,
       });
@@ -100,9 +95,9 @@ export default function ChatDetails() {
             setProgress(0);
             return 100;
           }
-          return prevProgress + 50;
-        });
-      }, 500);
+          return prevProgress + 10;
+        }, 500);
+      });
     }
   };
 
@@ -193,7 +188,7 @@ export default function ChatDetails() {
 
       {/* Chat Input */}
       <div className="p-3 border-t bg-white">
-        <div className="flex items-center mb-2">
+        {/* <div className="flex items-center mb-2">
           <Button
             component="label"
             role={undefined}
@@ -215,25 +210,19 @@ export default function ChatDetails() {
               sx={{ width: '20%', marginLeft: 2 }}
             />
           )}
-        </div>
+        </div> */}
         {uploadedFileName && !isUploading && (
           <Typography variant="body2" sx={{ mb: 2 }}>
             File đã tải lên: {uploadedFileName}
           </Typography>
         )}
         <div className="flex items-center bg-white">
-          <TextField
-            fullWidth
-            variant="outlined"
+          <TextareaAutosize
+            minRows={3}
             placeholder="Nhập tin nhắn..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !isUploading) {
-                handleSendMessage();
-              }
-            }}
-            className="mr-2"
+            className="mr-2 w-full p-2 border rounded"
             disabled={isUploading} // Vô hiệu hóa khi đang tải lên
           />
           <IconButton

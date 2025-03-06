@@ -40,9 +40,12 @@ export default function TextComponent({ text, sender, time, role, image }) {
             className="my-2 max-w-full h-auto rounded"
           />
         )}
-        <p className="text-sm font-normal py-2.5">
+        <div
+          className="flex justify-start flex-wrap text-sm font-normal py-2.5 break-words w-full max-w-full overflow-hidden"
+          style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+        >
           {text === 'undefined' ? '' : text || ''}
-        </p>
+        </div>
       </div>
     </div>
   );
