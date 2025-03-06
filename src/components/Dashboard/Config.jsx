@@ -15,13 +15,22 @@ export default function Config() {
   const [profitPercentTaiXiu, setProfitPercentTaiXiu] = useState(0);
   const [sessionTime, setSessionTime] = useState(299); // Đặt mặc định là 299 giây
   const [error, setError] = useState(null);
+
   const {
-    setting,
-    defaultSetting,
-    isDefaultLoading,
-    configSuccess,
-    configError,
-  } = useSetting();
+    setting: settingLocPhat,
+    defaultSetting: defaultSettingLocPhat,
+    isDefaultLoading: isDefaultLoadingLocPhat,
+    configSuccess: configSuccessLocPhat,
+    configError: configErrorLocPhat,
+  } = useSetting(1); // 1 là game Lộc phát 5d
+
+  const {
+    setting: settingTaiXiu,
+    defaultSetting: defaultSettingTaiXiu,
+    isDefaultLoading: isDefaultLoadingTaiXiu,
+    configSuccess: configSuccessTaiXiu,
+    configError: configErrorTaiXiu,
+  } = useSetting(2); // 2 là game Tài xỉu
 
   const handleSave = async () => {
     const profitPercentLocPhatValue = parseFloat(profitPercentLocPhat);
@@ -37,28 +46,34 @@ export default function Config() {
       return;
     }
 
-    setting({
-      profitPercentLocPhat: profitPercentLocPhatValue,
-      profitPercentTaiXiu: profitPercentTaiXiuValue,
+    settingLocPhat({
+      profitPercent: profitPercentLocPhatValue,
+      sessionTime: sessionTime, // Sử dụng giá trị mặc định
+    });
+
+    settingTaiXiu({
+      profitPercent: profitPercentTaiXiuValue,
       sessionTime: sessionTime, // Sử dụng giá trị mặc định
     });
   };
 
   useEffect(() => {
-    if (!isDefaultLoading) {
-      setProfitPercentLocPhat(defaultSetting.profitPercentLocPhat);
-      setProfitPercentTaiXiu(defaultSetting.profitPercentTaiXiu);
-      setSessionTime(299); // Đặt mặc định là 299 giây
+    if (!isDefaultLoadingLocPhat) {
+      setProfitPercentLocPhat(defaultSettingLocPhat.profitPercent);
     }
-  }, [isDefaultLoading]);
+    if (!isDefaultLoadingTaiXiu) {
+      setProfitPercentTaiXiu(defaultSettingTaiXiu.profitPercent);
+    }
+    setSessionTime(299); // Đặt mặc định là 299 giây
+  }, [isDefaultLoadingLocPhat, isDefaultLoadingTaiXiu]);
 
   useEffect(() => {
-    if (configSuccess) {
+    if (configSuccessLocPhat || configSuccessTaiXiu) {
       setProfitPercentLocPhat(profitPercentLocPhat);
       setProfitPercentTaiXiu(profitPercentTaiXiu);
       setSessionTime(299); // Đặt mặc định là 299 giây
     }
-  }, [configSuccess]);
+  }, [configSuccessLocPhat, configSuccessTaiXiu]);
 
   return (
     <Container maxWidth="lg">
@@ -97,13 +112,21 @@ export default function Config() {
         </Button>
       </Paper>
 
-      <Snackbar open={configSuccess} autoHideDuration={6000} onClose={() => {}}>
+      <Snackbar
+        open={configSuccessLocPhat || configSuccessTaiXiu}
+        autoHideDuration={6000}
+        onClose={() => {}}
+      >
         <Alert onClose={() => {}} severity="success" sx={{ width: '100%' }}>
           Cấu hình thành công!
         </Alert>
       </Snackbar>
 
-      <Snackbar open={configError} autoHideDuration={6000} onClose={() => {}}>
+      <Snackbar
+        open={configErrorLocPhat || configErrorTaiXiu}
+        autoHideDuration={6000}
+        onClose={() => {}}
+      >
         <Alert onClose={() => {}} severity="error" sx={{ width: '100%' }}>
           Cấu hình thất bại!
         </Alert>
