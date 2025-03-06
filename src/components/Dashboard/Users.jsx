@@ -20,6 +20,7 @@ import InOutDialogComponent from '../InOutDialogComponent';
 import { useDepositManually } from '../../services/depositService';
 import { useWidthdrawManually } from '../../services/withdrawService';
 import SnackBarComponent from '../SnackBar';
+import BankEditCompoent from '../BankComponent';
 
 export default function Users() {
   const [page, setPage] = useState(1);
@@ -32,6 +33,8 @@ export default function Users() {
     createUserMutation,
     deleteUserMutation,
     changePasswordMutation,
+    lockUserMutation,
+    isLoadingLockUser,
   } = useUser({
     limit: 8,
     page: desiredPage,
@@ -69,7 +72,12 @@ export default function Users() {
   const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
   const [newDeposit, setNewDeposit] = useState('');
   const [newWithdraw, setNewWithdraw] = useState('');
-
+  const [isBankAccountDialogOpen, setIsBankAccountDialogOpen] = useState(false);
+  const [bankAccount, setBankAccount] = useState({
+    accountNumber: '',
+    bankName: '',
+    accoutName: '',
+  });
   const formatNumber = (value) => {
     if (typeof value !== 'string' && typeof value !== 'number') {
       return '';
@@ -304,12 +312,14 @@ export default function Users() {
   };
 
   const handleOpenBankAccountDialog = (user) => {
-    // setSelectedUser(user);
-    // setBankAccount({
-    //   accountNumber: user.bankAccount?.accountNumber || '',
-    //   bankName: user.bankAccount?.bankName || '',
-    // });
-    // setIsBankAccountDialogOpen(true);
+    console.log('user', user);
+    setSelectedUser(user);
+    setBankAccount({
+      accountNumber: user.bankAccount?.accountNumber || '',
+      bankName: user.bankAccount?.bankName || '',
+      accoutName: user.bankAccount?.accoutName || '',
+    });
+    setIsBankAccountDialogOpen(true);
   };
 
   const handleSaveBankAccount = () => {
@@ -328,6 +338,19 @@ export default function Users() {
     //     },
     //   }
     // );
+  };
+
+  const handleLockUser = (user) => {
+    console.log('user', user);
+    lockUserMutation(user.id, {
+      onSuccess: () => {
+        setSuccessMessage('Khóa/Mở khóa người dùng thành công');
+      },
+      onError: (error) => {
+        setError('Khóa/Mở khóa người dùng thất bại');
+        console.error('Lock user failed:', error);
+      },
+    });
   };
 
   return (
@@ -396,9 +419,9 @@ export default function Users() {
                       <Button
                         variant="text"
                         color="warning"
-                        // onClick={() => handleOpenDeleteConfirm(user)}
+                        onClick={() => handleLockUser(user)}
                       >
-                        Khóa tài khoản
+                        {user?.isLocked ? 'Mở khóa' : 'Khóa'}
                       </Button>
                       <Button
                         variant="text"
@@ -658,48 +681,11 @@ export default function Users() {
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={false}
-        // open={isBankAccountDialogOpen}
-        // onClose={() => setIsBankAccountDialogOpen(false)}
-      >
-        <DialogTitle>Thay đổi thông tin tài khoản ngân hàng</DialogTitle>
-        <DialogContent sx={{ minWidth: '400px' }}>
-          <TextField
-            label="Số tài khoản"
-            variant="outlined"
-            fullWidth
-            type="text"
-            margin="normal"
-            // value={bankAccount.accountNumber}
-            // onChange={(e) =>
-            //   setBankAccount({ ...bankAccount, accountNumber: e.target.value })
-            // }
-          />
-          <TextField
-            label="Tên ngân hàng"
-            variant="outlined"
-            fullWidth
-            type="text"
-            margin="normal"
-            // value={bankAccount.bankName}
-            // onChange={(e) =>
-            //   setBankAccount({ ...bankAccount, bankName: e.target.value })
-            // }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            // onClick={() => setIsBankAccountDialogOpen(false)}
-            color="primary"
-          >
-            Hủy
-          </Button>
-          <Button onClick={handleSaveBankAccount} color="primary">
-            Lưu
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <BankEditCompoent
+        isBankAccountDialogOpen={isBankAccountDialogOpen}
+        handleSaveBankAccount={handleSaveBankAccount}
+        setIsBankAccountDialogOpen={setIsBankAccountDialogOpen}
+      />
 
       <InOutDialogComponent
         open={isDepositDialogOpen}

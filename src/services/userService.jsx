@@ -46,6 +46,12 @@ const changePassword = async ({ userId, password }) => {
   return response.data;
 };
 
+// Khóa/Mở khóa user
+const lockUser = async (userId) => {
+  const res = await axiosClient.put(`/users/lock?userId=${userId}`);
+  return res.data;
+};
+
 export const useUser = ({ limit, page, q, order }) => {
   const queryClient = useQueryClient();
   const { data, isLoading: isLoadingListUser } = useQuery({
@@ -107,6 +113,23 @@ export const useUser = ({ limit, page, q, order }) => {
       },
     });
 
+  const {
+    mutate: lockUserMutation,
+    isPending: isLoadingLockUser,
+    isError: isLockUserError,
+  } = useMutation({
+    mutationKey: 'lockUser',
+    mutationFn: lockUser,
+    onSettled: () => {
+      queryClient.invalidateQueries('listUser');
+    },
+    onSuccess: () => {
+      console.log('Lock user successfully');
+    },
+    onError: (error) => {
+      console.log('Lock user failed:', error);
+    },
+  });
   return {
     listUser,
     pagination,
@@ -118,5 +141,8 @@ export const useUser = ({ limit, page, q, order }) => {
     isLoadingDeleteUser,
     changePasswordMutation,
     isLoadingChangePassword,
+    lockUserMutation,
+    isLoadingLockUser,
+    isLockUserError,
   };
 };
