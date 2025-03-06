@@ -36,7 +36,7 @@ export default function TextComponent({ text, sender, time, role, image }) {
         {image && (
           <img
             src={`${END_POINTS}/${image}`}
-            alt={`${image}`}
+            alt={image}
             className="my-2 max-w-full h-auto rounded"
           />
         )}
@@ -44,7 +44,12 @@ export default function TextComponent({ text, sender, time, role, image }) {
           className="flex justify-start flex-wrap text-sm font-normal py-2.5 break-words w-full max-w-full overflow-hidden"
           style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
         >
-          {text === 'undefined' ? '' : text || ''}
+          {text.split('\n').map((line, index) => (
+            <React.Fragment key={index}>
+              {line}
+              <br />
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </div>
