@@ -48,6 +48,7 @@ export default function Users() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: '',
+    username: '',
     wallet: { money: '' },
     phone: '',
     password: '',
@@ -92,6 +93,7 @@ export default function Users() {
     setIsEditMode(false);
     setNewUser({
       fullName: '',
+      username: '',
       wallet: { money: '' },
       phone: '',
       password: '',
@@ -157,7 +159,12 @@ export default function Users() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewUser((prevUser) => ({ ...prevUser, [name]: value }));
+    console.log('name', name);
+    console.log('value', value);
+    setNewUser((prevUser) => ({
+      ...prevUser,
+      [name]: value,
+    }));
   };
 
   const getErrorMessage = (errorCode) => {
@@ -442,6 +449,18 @@ export default function Users() {
             margin="normal"
             name="fullName"
             value={newUser.fullName}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Tên đăng nhập"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            name="username"
+            value={newUser.username
+              .trim()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')}
             onChange={handleInputChange}
           />
           <TextField

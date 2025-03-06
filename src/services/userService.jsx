@@ -20,9 +20,10 @@ const fetchListUser = async ({ queryKey }) => {
 };
 
 // Tạo user mới
-const createUser = async ({ fullName, phone, password, code }) => {
+const createUser = async ({ fullName, username, phone, password, code }) => {
   const response = await axiosClient.post('/users', {
     fullName,
+    username,
     phone,
     password,
     code,
