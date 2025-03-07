@@ -3,7 +3,6 @@ import './index.css';
 import LoginForm from './pages/Auth/LoginForm';
 import HomePage from './pages/Home';
 import Users from './components/Dashboard/Users';
-import Deposit from './components/Dashboard/Deposit';
 import Withdraw from './components/Dashboard/Withdraw';
 import Config from './components/Dashboard/Config';
 import Sale from './components/Dashboard/Sale';
@@ -17,6 +16,8 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import Chat from './components/Dashboard/Chat/Chat';
 import ChatDetails from './components/Dashboard/Chat/ChatDetails';
+import Deposit from './components/Dashboard/Deposit/Deposit';
+import DepositHistory from './components/Dashboard/Deposit/DepositHistory';
 
 function PrivateRoute({ children }) {
   const { user, isLoadingUser } = useAuth();
@@ -70,7 +71,9 @@ export default function App() {
         >
           <Route path="users" element={<Users />} />
           <Route path="sale" element={<Sale />} />
-          <Route path="deposit" element={<Deposit />} />
+          <Route path="deposit" element={<Deposit />}>
+            <Route path="history" element={<DepositHistory />} />
+          </Route>
           <Route path="withdraw" element={<Withdraw />} />
           <Route path="chat" element={<Chat />}>
             <Route path=":id" element={<ChatDetails />} />

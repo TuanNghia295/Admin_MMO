@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '../apis/AxiosClient';
-import { END_POINTS } from '../constant/endpoints';
 
 // Lấy danh sách giao dịch
 const getDepositList = async ({ queryKey }) => {
