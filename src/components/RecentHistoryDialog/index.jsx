@@ -41,6 +41,9 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
     userId,
   });
 
+  console.log('numGuessHistory', numGuessHistory);
+  console.log('taiLocHistory', taiLocHistory);
+
   const options = ['Đoán số', 'Tài Lộc'];
   const [value, setValue] = useState(options[0]);
   const [inputValue, setInputValue] = useState('');
@@ -57,12 +60,14 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
     setPage(0);
   };
 
-  const renderHistory = (history) => (
+  const renderHistory = (history, type) => (
     <table className="w-full border-collapse border border-gray-300 mt-4">
+      {console.log('history', history)}
       <thead>
         <tr>
           <th className="border border-gray-300 p-2">Ngày tháng năm</th>
           <th className="border border-gray-300 p-2">Thời gian</th>
+          <th className="border border-gray-300 p-2">Loại trò chơi</th>
           <th className="border border-gray-300 p-2">Lệnh đặt</th>
           <th className="border border-gray-300 p-2">Kết quả</th>
           <th className="border border-gray-300 p-2">Tiền thắng / Thua</th>
@@ -70,8 +75,18 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
       </thead>
       <tbody>
         {history?.data?.map((item, index) => {
-          const { id, result, value, time, amount, amountResult, createdAt } =
-            item;
+          const {
+            id,
+            result,
+            value,
+            input,
+            time,
+            amount,
+            amountResult,
+            createdAt,
+            status,
+            bets,
+          } = item;
           const isResultArray = Array.isArray(result);
           let resultSum = 0;
           let resultTaiXiu = ''; // <= 10 là xỉu, >= 11 là tài
@@ -85,28 +100,74 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
           } else {
             isWin = result === value;
           }
-          return (
-            <tr key={id}>
-              <td className="border border-gray-300 p-2 text-center">
-                {dayjs(createdAt).format('DD/MM/YYYY')}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {dayjs(createdAt).format('HH:mm:ss')}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {value}
-              </td>
-              <td className="border border-gray-300 p-2 text-center">
-                {resultTaiXiu || result}
-              </td>
-              <td
-                className="border border-gray-300 p-2 text-center"
-                style={{ color: isWin ? 'green' : 'red' }}
-              >
-                {amountResult}
-              </td>
-            </tr>
-          );
+
+          if (type === 'TAILOC') {
+            return bets.map((bet, betIndex) => (
+              <tr key={`${id}-${betIndex}`}>
+                <td className="border border-gray-300 p-2 text-center">
+                  {dayjs(createdAt).format('DD/MM/YYYY')}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {dayjs(createdAt).format('HH:mm:ss')}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {bet.type === 'num-guess' ? 'Đoán số' : 'Tài Lộc'}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {bet.value}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {type === 'TAILOC' ? resultTaiXiu : result}
+                </td>
+                <td
+                  className="border border-gray-300 p-2 text-center"
+                  style={{
+                    color:
+                      status === 1 ? 'green' : status === 2 ? 'red' : 'orange',
+                  }}
+                >
+                  {status === 0
+                    ? 'Đang chờ kết quả'
+                    : status === 1
+                      ? amountResult
+                      : amount}
+                </td>
+              </tr>
+            ));
+          } else {
+            return (
+              <tr key={id}>
+                <td className="border border-gray-300 p-2 text-center">
+                  {dayjs(createdAt).format('DD/MM/YYYY')}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {dayjs(createdAt).format('HH:mm:ss')}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  Đoán số
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {input}
+                </td>
+                <td className="border border-gray-300 p-2 text-center">
+                  {result}
+                </td>
+                <td
+                  className="border border-gray-300 p-2 text-center"
+                  style={{
+                    color:
+                      status === 1 ? 'green' : status === 2 ? 'red' : 'orange',
+                  }}
+                >
+                  {status === 0
+                    ? 'Đang chờ kết quả'
+                    : status === 1
+                      ? amountResult
+                      : amount}
+                </td>
+              </tr>
+            );
+          }
         })}
       </tbody>
     </table>
@@ -147,9 +208,9 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
         {isLoading ? (
           <p>Loading...</p>
         ) : value === 'Đoán số' ? (
-          renderHistory(numGuessHistory)
+          renderHistory(numGuessHistory, 'NUMGUESS')
         ) : (
-          renderHistory(taiLocHistory)
+          renderHistory(taiLocHistory, 'TAILOC')
         )}
         <TablePagination
           component="div"

@@ -64,36 +64,50 @@ const InOutHistory = ({ open, onClose, userId }) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Thời Gian</TableCell>
-                  <TableCell>Loại</TableCell>
-                  <TableCell>Trạng Thái</TableCell>
-                  <TableCell>Số Tiền</TableCell>
-                  <TableCell>SĐT</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    ID
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    Thời Gian
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    Loại
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    Trạng Thái
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    Số Tiền
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    SĐT
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {listTransactionHistory?.map((transaction) => (
                   <TableRow key={transaction.id}>
-                    <TableCell>{transaction.id}</TableCell>
-                    <TableCell>
+                    <TableCell align="center">{transaction.id}</TableCell>
+                    <TableCell align="center">
                       {dayjs(transaction.createdAt).format(
                         'DD/MM/YYYY HH:mm:ss'
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell align="center">
                       {transaction.type === 'DEPOSIT' ? 'Nạp' : 'Rút'}
                     </TableCell>
-                    <td
-                      className="border border-gray-300 p-2 text-center"
+                    <TableCell
+                      align="center"
                       style={{ color: statusMap[transaction.status]?.color }}
                     >
                       {statusMap[transaction.status]?.label}
-                    </td>
-                    <TableCell>
-                      {transaction.amount.toLocaleString()} VND
                     </TableCell>
-                    <TableCell>{transaction.user?.phone || 'N/A'}</TableCell>
+                    <TableCell align="center">
+                      {transaction.amount.toLocaleString()}
+                    </TableCell>
+                    <TableCell align="center">
+                      {transaction.user?.phone || 'N/A'}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -107,6 +121,7 @@ const InOutHistory = ({ open, onClose, userId }) => {
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{ mt: 2 }}
         />
       </DialogContent>
     </Dialog>
