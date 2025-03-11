@@ -5,11 +5,8 @@ import AvatarClone from '../../../assets/images/avatartClone.jpg';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  socketOn,
-  socketConnect,
-  socketDisconnect,
-} from '../../../services/socketService';
+import { io } from 'socket.io-client';
+import { END_POINTS } from '../../../constant/endpoints';
 import { getConversations } from '../../../services/chatService';
 
 const Search = styled('div')(({ theme }) => ({
@@ -77,10 +74,14 @@ export default function Chat() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  useEffect(() => {
-    socketConnect(accessToken);
+  const connectSocket = (accessToken) => {
+    const socket = io(END_POINTS + '/chat', {
+      extraHeaders: {
+        Authorization: `${accessToken}`,
+      },
+    });
 
-    socketOn('message.created', (data) => {
+    socket.on('message.created', (data) => {
       console.log('Message:', data);
       client.invalidateQueries({
         queryKey: ['conversations'],
@@ -90,8 +91,15 @@ export default function Chat() {
       });
     });
 
+    return socket;
+  };
+
+  useEffect(() => {
+    const socket = connectSocket(accessToken);
+    console.log('da vao 😘😘😘😘');
+
     return () => {
-      socketDisconnect();
+      socket.disconnect();
     };
   }, [accessToken, client]);
 
@@ -137,6 +145,8 @@ export default function Chat() {
 
     checkHeight();
   }, [data, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  console.log('data', data);
 
   return (
     <div className="flex">
