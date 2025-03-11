@@ -27,7 +27,7 @@ const getRoleDisplayName = (role) => {
 export default function DepositHistory() {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const { depositHistory, pagination, totalPage } = useDepositHistory({
     limit: rowsPerPage,
