@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '../apis/AxiosClient';
+import { MessageTypeEnum } from '../constant';
 
 // lấy danh sách tin nhắn, lấy full hội thoại với id
 const getConversations = async ({ queryKey, pageParam = 1 }) => {
@@ -51,10 +52,11 @@ const getConversationDetail = async ({ queryKey, pageParam = 1 }) => {
 };
 
 // Gửi tin nhắn tới người dùng qua conversationId
-const sendMessage = async ({ conversationId, text, file }) => {
+const sendMessage = async ({ conversationId, text, file, type }) => {
   const formData = new FormData();
   formData.append('conversationId', conversationId);
   formData.append('text', text);
+  formData.append('type', type || MessageTypeEnum.TEXT);
   if (file) {
     formData.append('file', file);
   }

@@ -190,7 +190,7 @@ export default function Chat() {
                     />
                     &nbsp;&nbsp;
                     <div className="flex flex-col justify-start overflow-hidden w-full  whitespace-nowrap overflow-x-hidden">
-                      <h5>{creator?.fullName}</h5>
+                      <h5>{creator === null ? 'Khách' : creator?.fullName}</h5>
                       <p>
                         {lastMessage?.text === 'undefined'
                           ? ''

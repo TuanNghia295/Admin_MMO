@@ -91,3 +91,9 @@ export const ErrorCode = {
   // Setting
   ST001: 'ST001',
 };
+
+export const MessageTypeEnum = {
+  TEXT: 'text',
+  IMAGE: 'image',
+  FILE: 'file',
+};
