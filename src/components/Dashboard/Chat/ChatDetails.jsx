@@ -67,6 +67,8 @@ export default function ChatDetails() {
   const [editedMessage, setEditedMessage] = useState(''); // State để lưu nội dung chỉnh sửa
   const fileInputRef = useRef(null); // Tham chiếu đến input file
 
+  const [messageUpdateId, setMessageUpdateId] = useState(null);
+
   const {
     data,
     error,
@@ -84,7 +86,12 @@ export default function ChatDetails() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  const { sendMessageMutation, messageSuccess } = useConversationDetail({
+  const {
+    sendMessageMutation,
+    messageSuccess,
+    editMessageMutation,
+    deleteMessageMutation,
+  } = useConversationDetail({
     limit: 10,
     page: 1,
     q: '',
@@ -168,6 +175,7 @@ export default function ChatDetails() {
   };
 
   const handleMenuOpen = (event, message) => {
+    setMessageUpdateId(message.id);
     setAnchorEl(event.currentTarget); // Mở menu tại vị trí click
     setSelectedMessage(message); // Lưu tin nhắn được chọn
   };
@@ -180,20 +188,24 @@ export default function ChatDetails() {
   const handleDeleteMessage = () => {
     // Xử lý logic xóa tin nhắn (sẽ thêm sau)
     console.log('Xóa tin nhắn:', selectedMessage);
+    deleteMessageMutation({ messageId: selectedMessage.id });
     handleMenuClose(); // Đóng menu sau khi xử lý
   };
 
   const handleEditMessage = () => {
+    console.log('selectedMessage', selectedMessage.id);
+    setMessageUpdateId(selectedMessage.id);
     setIsEditing(true); // Bật chế độ chỉnh sửa
     setEditedMessage(selectedMessage.text); // Set nội dung chỉnh sửa
     handleMenuClose(); // Đóng menu
   };
 
   const handleSaveEdit = () => {
-    // Xử lý logic lưu chỉnh sửa (sẽ thêm sau)
-    console.log('Lưu chỉnh sửa:', editedMessage);
-    setIsEditing(false); // Tắt chế độ chỉnh sửa
-    setEditedMessage(''); // Xóa nội dung chỉnh sửa
+    if (messageUpdateId && editedMessage.trim() !== '') {
+      editMessageMutation({ messageId: messageUpdateId, text: editedMessage });
+      setIsEditing(false); // Tắt chế độ chỉnh sửa
+      setEditedMessage(''); // Xóa nội dung chỉnh sửa
+    }
   };
 
   const handleCancelEdit = () => {
@@ -272,6 +284,7 @@ export default function ChatDetails() {
           page.data.map((message) => (
             <TextComponent
               key={message.id}
+              messageId={message.id}
               text={message.text}
               sender={message.sender?.fullName}
               senderAvatar={message.senderAvatar}
