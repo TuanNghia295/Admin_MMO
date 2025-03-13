@@ -64,6 +64,18 @@ const sendMessage = async ({ conversationId, text, file, type }) => {
   return response.data;
 };
 
+// Sửa tin nhắn với messgageId
+const editMessage = async ({ messageId, text }) => {
+  const response = await axiosClient.put(`/messages/${messageId}`, { text });
+  return response.data;
+};
+
+// Xóa tin nhắn với messageId
+const deleteMessage = async ({ messageId }) => {
+  const response = await axiosClient.delete(`/messages/${messageId}`);
+  return response.data;
+};
+
 // Hook sử dụng để lấy danh sách cuộc trò chuyện
 export const useConversations = ({ limit, page, q, order }) => {
   const queryClient = useQueryClient();
@@ -87,6 +99,7 @@ export const useConversationDetail = ({
   q,
   order,
   conversationId,
+  messageId,
 }) => {
   const queryClient = useQueryClient();
   const { data, isLoading: isLoadingConversationDetail } = useQuery({
@@ -120,6 +133,42 @@ export const useConversationDetail = ({
     },
   });
 
+  // Sửa tin nhắn người dùngs
+  const {
+    mutate: editMessageMutation,
+    isPending,
+    isSuccess,
+    isError,
+  } = useMutation({
+    mutationKey: 'editMessage',
+    mutationFn: editMessage,
+    onSuccess: (data) => {
+      console.log('Message edited successfully', data);
+      // sau khi sửa tin nhắn thành công, cần phải refresh lại dữ liệu
+      queryClient.invalidateQueries({
+        queryKey: ['conversationDetail', { messageId }],
+      });
+    },
+  });
+
+  // Xóa tin nhắn người dùng
+  const {
+    mutate: deleteMessageMutation,
+    isPending: isDeletingMessage,
+    isSuccess: deleteMessageSuccess,
+    isError: deleteMessageError,
+  } = useMutation({
+    mutationKey: 'deleteMessage',
+    mutationFn: deleteMessage,
+    onSuccess: (data) => {
+      console.log('Message deleted successfully', data);
+      // sau khi xóa tin nhắn thành công, cần phải refresh lại dữ liệu
+      queryClient.invalidateQueries({
+        queryKey: ['conversationDetail', { messageId }],
+      });
+    },
+  });
+
   return {
     conversationDetail,
     isLoadingConversationDetail,
@@ -127,6 +176,8 @@ export const useConversationDetail = ({
     isSendingMessage,
     messageError,
     messageSuccess,
+    editMessageMutation,
+    deleteMessageMutation,
   };
 };
 

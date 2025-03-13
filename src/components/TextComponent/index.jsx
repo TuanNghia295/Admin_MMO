@@ -22,7 +22,7 @@ export default function TextComponent({
   type,
   onImageClick,
   onMenuClick,
-  onDownloadFile,
+  messageId,
 }) {
   const isMyMessage = role === 'MANAGER' || role === 'SALE';
 
@@ -46,7 +46,7 @@ export default function TextComponent({
             <IconButton
               size="small"
               sx={{ color: '#fff' }}
-              onClick={(e) => onMenuClick(e, { text, id: 1 })}
+              onClick={(e) => onMenuClick(e, { text, id: messageId })}
             >
               <MoreHorizIcon />
             </IconButton>
