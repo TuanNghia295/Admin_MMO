@@ -96,8 +96,6 @@ export default function Chat() {
 
   useEffect(() => {
     const socket = connectSocket(accessToken);
-    console.log('da vao 😘😘😘😘');
-
     return () => {
       socket.disconnect();
     };

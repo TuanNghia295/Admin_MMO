@@ -65,6 +65,7 @@ export default function ChatDetails() {
   const [selectedMessage, setSelectedMessage] = useState(null); // State để lưu tin nhắn được chọn
   const [isEditing, setIsEditing] = useState(false); // State để kiểm soát chế độ chỉnh sửa
   const [editedMessage, setEditedMessage] = useState(''); // State để lưu nội dung chỉnh sửa
+  const fileInputRef = useRef(null); // Tham chiếu đến input file
 
   const {
     data,
@@ -95,12 +96,17 @@ export default function ChatDetails() {
 
   const handleSendMessage = () => {
     if ((newMessage.trim() !== '' || uploadedFile) && !isUploading) {
-      sendMessageMutation({
+      const messagePayload = {
         conversationId: Number(id),
-        text: newMessage,
         file: uploadedFile,
         type: fileType, // Sử dụng fileType đã được set
-      });
+      };
+
+      if (newMessage.trim() !== '') {
+        messagePayload.text = newMessage;
+      }
+
+      sendMessageMutation(messagePayload);
     }
   };
 
@@ -112,6 +118,10 @@ export default function ChatDetails() {
       setUploadedFile(files[0]);
       setFileType(MessageTypeEnum.IMAGE); // Set type là IMAGE
       simulateUpload();
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -131,6 +141,11 @@ export default function ChatDetails() {
       }
 
       simulateUpload();
+
+      // Reset giá trị input file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -194,6 +209,8 @@ export default function ChatDetails() {
 
   useEffect(() => {
     if (messageSuccess) {
+      console.log('da vao');
+
       setNewMessage('');
       setUploadedFileName('');
       setUploadedFile(null);
@@ -296,6 +313,7 @@ export default function ChatDetails() {
               onChange={handleImageUpload}
               accept="image/*"
               multiple
+              ref={fileInputRef}
             />
           </Button>
 
@@ -311,6 +329,7 @@ export default function ChatDetails() {
               type="file"
               onChange={handleFileUpload}
               multiple
+              ref={fileInputRef}
             />
           </Button>
 

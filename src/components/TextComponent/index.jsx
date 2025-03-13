@@ -22,6 +22,7 @@ export default function TextComponent({
   type,
   onImageClick,
   onMenuClick,
+  onDownloadFile,
 }) {
   const isMyMessage = role === 'MANAGER' || role === 'SALE';
 
@@ -65,6 +66,9 @@ export default function TextComponent({
           <div
             className="flex justify-start flex gap-3 items-center text-sm font-normal py-2.5 break-words w-full max-w-full overflow-hidden"
             style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+            onClick={() => {
+              window.open(` ${END_POINTS}messages/download/${file?.url || ''}`);
+            }}
           >
             <InsertDriveFileIcon />
             {file?.url}
@@ -75,12 +79,14 @@ export default function TextComponent({
           className="flex justify-start flex-wrap text-sm font-normal py-2.5 break-words w-full max-w-full overflow-hidden"
           style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
         >
-          {text?.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              <br />
-            </React.Fragment>
-          ))}
+          {text === 'undefined'
+            ? ''
+            : text?.split('\n').map((line, index) => (
+                <React.Fragment key={index}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))}
         </div>
         <div className="flex justify-end">
           <span
