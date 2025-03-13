@@ -300,7 +300,7 @@ export default function ChatDetails() {
           </Button>
 
           {/* Nút upload file */}
-          {/* <Button
+          <Button
             component="label"
             role={undefined}
             variant="text"
@@ -312,7 +312,7 @@ export default function ChatDetails() {
               onChange={handleFileUpload}
               multiple
             />
-          </Button> */}
+          </Button>
 
           {isUploading && (
             <LinearProgress

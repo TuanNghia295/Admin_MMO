@@ -41,7 +41,7 @@ export default function TextComponent({
             {sender}
           </span>
 
-          {/* {isMyMessage && ( // Chỉ hiển thị nút hành động cho tin nhắn của mình
+          {isMyMessage && ( // Chỉ hiển thị nút hành động cho tin nhắn của mình
             <IconButton
               size="small"
               sx={{ color: '#fff' }}
@@ -49,7 +49,7 @@ export default function TextComponent({
             >
               <MoreHorizIcon />
             </IconButton>
-          )} */}
+          )}
         </div>
 
         {type === MessageTypeEnum.IMAGE && image && (
