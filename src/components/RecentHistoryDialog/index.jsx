@@ -60,6 +60,60 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
     setPage(0);
   };
 
+  const getResultbyType = (result, type) => {
+    console.log('type', type);
+    console.log('result', result);
+
+    switch (type) {
+      case 'NUMGUESS':
+        return result
+          .map((item) => {
+            const value = Number(item.value); // Chuyển đổi value thành số
+            const isEven = value % 2 === 0; // Kiểm tra xem value là chẵn hay lẻ
+            const isExact = item.isExact; // Kiểm tra xem có phải là kết quả chính xác không
+
+            // Trả về kết quả dựa trên isExact và giá trị chẵn/lẻ
+            if (isExact) {
+              return `${isEven ? 'Chẵn' : 'Lẻ'}`;
+            } else {
+              return ` ${isEven ? 'Chẵn' : 'Lẻ'}`;
+            }
+          })
+          .join(', ');
+
+      case 'TAILOC':
+        return result
+          .map((item) => {
+            const value = Number(item.value); // Chuyển đổi value thành số
+            if (isNaN(value)) {
+              return 'Giá trị không hợp lệ'; // Xử lý trường hợp value không phải là số
+            }
+
+            switch (item.type) {
+              case 'num-guess': {
+                const isEven = value % 2 === 0; // Kiểm tra xem value là chẵn hay lẻ
+                return `${isEven ? 'Chẵn' : 'Lẻ'}`; // Trả về giá trị và kết quả kiểm tra
+              }
+              case 'sic-bo': {
+                const isTai = value >= 11 && value <= 17; // Kiểm tra xem value là Tài
+                const isXiu = value >= 4 && value <= 10; // Kiểm tra xem value là Xỉu
+                if (isTai) {
+                  return 'Tài';
+                } else if (isXiu) {
+                  return 'Xỉu';
+                } else {
+                  return `${value} (Không hợp lệ)`; // Trường hợp value nằm ngoài phạm vi Tài/Xỉu
+                }
+              }
+            }
+          })
+          .join(', ');
+
+      default:
+        return result.reduce((a, b) => Number(a) + Number(b), 0);
+    }
+  };
+
   const renderHistory = (history, type) => (
     <table className="w-full border-collapse border border-gray-300 mt-4">
       {console.log('history', history)}
@@ -74,7 +128,7 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
         </tr>
       </thead>
       <tbody>
-        {history?.data?.map((item, index) => {
+        {history?.data?.map((item) => {
           const {
             id,
             result,
@@ -147,7 +201,9 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
                   Đoán số
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {input}
+                  {Array.isArray(input)
+                    ? getResultbyType(input, 'NUMGUESS')
+                    : input}
                 </td>
                 <td className="border border-gray-300 p-2 text-center">
                   {result}
@@ -163,7 +219,7 @@ const RecentHistoryDialog = ({ open, onClose, userId }) => {
                     ? 'Đang chờ kết quả'
                     : status === 1
                       ? amountResult
-                      : amount}
+                      : amountResult}
                 </td>
               </tr>
             );

@@ -151,7 +151,7 @@ export default function Chat() {
       {/* ListChat dashboard */}
       <ul
         ref={listRef}
-        className="list-none w-[28%] text-black bg-white shadow-md mr-3 rounded-lg p-4 h-[96vh] overflow-y-auto"
+        className="list-none w-[24%] max-w-[24%] text-black bg-white shadow-md mr-3 rounded-lg p-4 h-[96vh] overflow-y-auto"
       >
         <h1 className=" font-[500] text-2xl">Đoạn chat</h1>
         {/* search */}
@@ -192,7 +192,9 @@ export default function Chat() {
                       <p>
                         {lastMessage?.text === 'undefined'
                           ? ''
-                          : lastMessage?.text}
+                          : lastMessage?.text?.length >= 20
+                            ? lastMessage?.text.slice(0, 20) + '...'
+                            : lastMessage?.text}
                       </p>
                     </div>
                   </article>
