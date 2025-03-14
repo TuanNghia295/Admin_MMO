@@ -29,7 +29,8 @@ const getConversations = async ({ queryKey, pageParam = 1 }) => {
 
 // Lấy chi tiết cuộc trò chuyện thông qua conversationId
 const getConversationDetail = async ({ queryKey, pageParam = 1 }) => {
-  const [_key, { limit, q, order = 'DESC', conversationId }] = queryKey;
+  const [_key, { limit, q, order = 'DESC', conversationId, guestId }] =
+    queryKey;
 
   // tạo query params linh hoạt
   const params = new URLSearchParams({
@@ -40,6 +41,7 @@ const getConversationDetail = async ({ queryKey, pageParam = 1 }) => {
   });
 
   if (q) params.append('q', q); // chỉ thêm q nếu có giá trị
+  if (guestId) params.append('guestId', guestId);
   const response = await axiosClient.get(`/messages?${params.toString()}`);
 
   return {
@@ -100,12 +102,13 @@ export const useConversationDetail = ({
   order,
   conversationId,
   messageId,
+  guestId,
 }) => {
   const queryClient = useQueryClient();
   const { data, isLoading: isLoadingConversationDetail } = useQuery({
     queryKey: [
       'conversationDetail',
-      { limit, page, q: q || '', order, conversationId },
+      { limit, page, q: q || '', order, conversationId, guestId },
     ],
     queryFn: getConversationDetail,
     enabled: !!localStorage.getItem('role'),

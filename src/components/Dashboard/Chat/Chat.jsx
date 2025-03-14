@@ -2,7 +2,7 @@ import { styled, alpha } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import AvatarClone from '../../../assets/images/avatartClone.jpg';
-import { Link, Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation, useParams } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
@@ -55,6 +55,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Chat() {
   const [limit, setLimit] = useState(1);
   const location = useLocation(); // Sử dụng useLocation để lấy đường dẫn hiện tại
+  const { guestId } = useParams(); // Lấy guestId từ URL nếu có
   const client = useQueryClient();
   const accessToken = localStorage.getItem('token');
   const listRef = useRef(null);
@@ -144,8 +145,6 @@ export default function Chat() {
     checkHeight();
   }, [data, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  console.log('data', data);
-
   return (
     <div className="flex">
       {/* ListChat dashboard */}
@@ -168,11 +167,21 @@ export default function Chat() {
         {/* chat list of user */}
         {data?.pages?.map((page, pageIndex) =>
           page.data.map((conversation) => {
-            const { id, lastMessage, creator } = conversation;
-            const isActive = location.pathname === `/dashboard/chat/${id}`; // Kiểm tra nếu đường dẫn hiện tại là đường dẫn của cuộc trò chuyện
+            const { id, lastMessage, creator, type, members } = conversation;
+            const member = members.find((member) => member.guestId !== null);
+            const isActive =
+              location.pathname === `/dashboard/chat/${id}` ||
+              (type === 'guest' &&
+                guestId &&
+                member?.guestId === Number(guestId)); // Kiểm tra nếu đường dẫn hiện tại là đường dẫn của cuộc trò chuyện hoặc có guestId khớp
+
+            let url = `/dashboard/chat/${id}`;
+            if (type === 'guest') {
+              url = `/dashboard/chat/${id}/${member?.guestId}`;
+            }
             return (
               <Link
-                to={`/dashboard/chat/${id}?fullName=${creator?.fullName}`}
+                to={`${url}?fullName=${creator?.fullName}`}
                 key={`${id}-${pageIndex}`}
               >
                 <li

@@ -76,7 +76,8 @@ export default function App() {
           </Route>
           <Route path="withdraw" element={<Withdraw />} />
           <Route path="chat" element={<Chat />}>
-            <Route path=":id" element={<ChatDetails />} />
+            <Route path=":id/" element={<ChatDetails />} />
+            <Route path=":id/:guestId" element={<ChatDetails />} />
           </Route>
           <Route path="config" element={<Config />} />
         </Route>

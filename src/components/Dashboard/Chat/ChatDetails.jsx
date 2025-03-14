@@ -48,7 +48,7 @@ const style = {
 };
 
 export default function ChatDetails() {
-  const { id } = useParams();
+  const { id, guestId } = useParams();
   const location = useLocation();
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState(0);
@@ -97,6 +97,7 @@ export default function ChatDetails() {
     q: '',
     order: 'DESC',
     conversationId: id,
+    guestId: guestId,
   });
 
   const [newMessage, setNewMessage] = useState('');
