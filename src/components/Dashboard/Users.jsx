@@ -520,6 +520,14 @@ export default function Users() {
               <Typography variant="body1">
                 <strong>Số điện thoại:</strong> {selectedUser.phone}
               </Typography>
+
+              <Typography variant="body1">
+                <strong>Ngân hàng: </strong> {selectedUser.bank.bankName}
+              </Typography>
+
+              <Typography variant="body1">
+                <strong>STK: </strong> {selectedUser.bank.accountNumber}
+              </Typography>
             </Box>
 
             <Grid2 container spacing={2} justifyContent="start">

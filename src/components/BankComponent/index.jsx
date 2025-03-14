@@ -5,16 +5,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  Select,
   TextField,
 } from '@mui/material';
 import { useBank } from '../../services/bankService';
 import SnackBarComponent from '../SnackBar';
-import { useState } from 'react';
-import MenuItem from '@mui/material/MenuItem';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 
 /**
  *
@@ -25,7 +21,7 @@ export default function BankEditCompoent({
   setIsBankAccountDialogOpen,
   userId,
 }) {
-  const { bankList, bankMutation } = useBank();
+  const { bankMutation } = useBank();
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [bankAccount, setBankAccount] = useState({
@@ -33,14 +29,6 @@ export default function BankEditCompoent({
     bankName: '',
     accountName: '',
   });
-
-  const handleChange = (event) => {
-    const { value } = event.target;
-    setBankAccount((prev) => ({
-      ...prev,
-      bankName: value,
-    }));
-  };
 
   const handleSaveBankAccount = () => {
     bankMutation(
@@ -81,24 +69,17 @@ export default function BankEditCompoent({
       >
         <DialogTitle>Thay đổi thông tin tài khoản ngân hàng</DialogTitle>
         <DialogContent sx={{ minWidth: '400px' }}>
-          <Box sx={{ minWidth: 120 }}>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-label">Ngân hàng</InputLabel>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={bankAccount.bankName}
-                onChange={handleChange}
-              >
-                {Array.isArray(bankList) &&
-                  bankList.map((bank) => (
-                    <MenuItem key={bank.name} value={bank.name}>
-                      {bank.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-          </Box>
+          <TextField
+            label="Ngân hàng"
+            variant="outlined"
+            fullWidth
+            type="text"
+            margin="normal"
+            value={bankAccount.bankName}
+            onChange={(e) =>
+              setBankAccount({ ...bankAccount, bankName: e.target.value })
+            }
+          />
           <TextField
             label="Số tài khoản"
             variant="outlined"
